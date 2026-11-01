@@ -1,0 +1,9 @@
+node_modules
+dist
+dev-dist
+.DS_Store
+*.log
+# Real participant data is never committed or deployed
+data/participants.csv
+# Generated, but regenerated on every build
+public/data.json
