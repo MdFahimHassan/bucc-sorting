@@ -25,6 +25,22 @@ async function main() {
   let source = realCsv;
   let usingSample = false;
   if (!existsSync(realCsv)) {
+    // On Vercel the CSV is (deliberately) not in the repo. Use the encrypted list that was
+    // built locally and committed, after checking that it really looks like one.
+    if (process.env.VERCEL && existsSync(outFile)) {
+      try {
+        const d = JSON.parse(readFileSync(outFile, 'utf8')) as { salt?: unknown; entries?: Record<string, unknown> };
+        const n = d.entries && typeof d.salt === 'string' ? Object.keys(d.entries).length : 0;
+        if (n > 0) {
+          console.log(green(`\nVercel build: using the committed ${outFile} (${n} encrypted entries). No CSV needed.\n`));
+          return;
+        }
+      } catch {
+        /* fall through to the error below */
+      }
+      console.error(red('\npublic/data.json exists but is not a valid encrypted list. Rebuild it locally and commit it.'));
+      process.exit(1);
+    }
     if (strict) {
       console.error(red(`\nMissing ${realCsv}. Refusing to fall back to sample data in strict mode.`));
       process.exit(1);
