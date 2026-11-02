@@ -1,5 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
-import { getDepartment } from '../config/departments';
+import { getDepartment, patronusLabel } from '../config/departments';
 
 /** Last successful lookup, readable even if React itself crashes. */
 const lastResult: { name: string | null; dept: string | null } = { name: null, dept: null };
@@ -33,7 +33,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
             <p className="fallback-dept" style={{ color: d.accent }}>
               {d.name}
             </p>
-            <p>Your horcrux is {d.horcrux}.</p>
+            <p>Your Patronus is {patronusLabel(d)}.</p>
             <p>{d.flavor}</p>
           </>
         ) : (

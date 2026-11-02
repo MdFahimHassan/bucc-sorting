@@ -2,7 +2,7 @@
 
 An interactive department-placement experience for the BRAC University Computer Club (BUCC)
 Fall 2026 new-member orientation. Freshers scan a QR code, enter their student ID, watch the
-Sorting Hat deliberate, and are revealed to one of seven departments, each represented by a horcrux.
+Sorting Hat deliberate, and are revealed to one of seven departments, each represented by a Patronus.
 
 ## Highlights
 

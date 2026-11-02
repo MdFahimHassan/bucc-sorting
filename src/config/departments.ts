@@ -1,12 +1,10 @@
-import {
-  cupSvg,
-  diademSvg,
-  diarySvg,
-  locketSvg,
-  naginiSvg,
-  ringSvg,
-  scarSvg,
-} from '../assets/svg/horcruxes';
+import doeImg from '../assets/patronus/doe.webp';
+import hareImg from '../assets/patronus/hare.webp';
+import horseImg from '../assets/patronus/horse.webp';
+import otterImg from '../assets/patronus/otter.webp';
+import phoenixImg from '../assets/patronus/phoenix.webp';
+import stagImg from '../assets/patronus/stag.webp';
+import terrierImg from '../assets/patronus/terrier.webp';
 
 /**
  * THE ONE PLACE TO EDIT DEPARTMENT MAPPING.
@@ -18,7 +16,10 @@ import {
 export interface Department {
   id: string;
   name: string;
-  horcrux: string;
+  /** The animal, e.g. "Stag". */
+  patronus: string;
+  /** Whose patronus it is, e.g. "Harry’s". Reads as "Harry’s Stag". */
+  bearer: string;
   /** Glow colour used in the reveal, card and share image. */
   accent: string;
   /** One line, in the Sorting Hat's voice. */
@@ -26,100 +27,108 @@ export interface Department {
   /** Two lines on what the department does. */
   description: [string, string];
   groupChatUrl: string;
-  svg: string;
+  /** White patronus image (alpha only); tinted with `accent` at runtime. */
+  image: string;
 }
 
 export const DEPARTMENTS: readonly Department[] = [
   {
     id: 'comms',
     name: 'Communication and Marketing',
-    horcrux: "Nagini",
-    accent: '#4fbf72',
-    flavor: 'A voice that slips through every corridor. Speak, and the whole castle listens.',
+    patronus: 'Phoenix',
+    bearer: 'Dumbledore’s',
+    accent: '#ff6b4a',
+    flavor: 'Rising, renewing, and always carrying the message. Wherever the club needs a voice, you arrive on wings.',
     description: [
       'You carry BUCC’s story to the world: campaigns, outreach and partnerships.',
       'Where the club has something to say, you decide how far it travels.',
     ],
     groupChatUrl: '[PLACEHOLDER]',
-    svg: naginiSvg,
+    image: phoenixImg,
   },
   {
     id: 'creative',
     name: 'Creative',
-    horcrux: 'The Lightning Scar',
-    accent: '#ef4b43',
-    flavor: 'Marked by accident, bright by nature. Courage and a restless imagination.',
+    patronus: 'Jack Russell Terrier',
+    bearer: 'Ron’s',
+    accent: '#e0a93b',
+    flavor: 'Loyal, funny and braver than you let on. Your ideas come running before anyone has called them.',
     description: [
       'You give BUCC its look: posters, video, motion and brand identity.',
       'Every event starts as a blank page and leaves as something people remember.',
     ],
     groupChatUrl: '[PLACEHOLDER]',
-    svg: scarSvg,
+    image: terrierImg,
   },
   {
     id: 'events',
     name: 'Event Management',
-    horcrux: "Hufflepuff’s Cup",
-    accent: '#f5c242',
-    flavor: 'Loyal, warm and tireless. You make a hall feel like home.',
+    patronus: 'Hare',
+    bearer: 'Luna’s',
+    accent: '#8fd16a',
+    flavor: 'Light on your feet and tuned to what others miss. You turn an ordinary evening into something people believe in.',
     description: [
       'You plan and run BUCC’s workshops, contests and orientations.',
       'Logistics, hosting and the thousand small details that make a day go right.',
     ],
     groupChatUrl: '[PLACEHOLDER]',
-    svg: cupSvg,
+    image: hareImg,
   },
   {
     id: 'finance',
     name: 'Finance',
-    horcrux: "Marvolo Gaunt’s Ring",
-    accent: '#b58cff',
-    flavor: 'Careful with treasure, sharp with numbers. Nothing in the vault goes unnoticed.',
+    patronus: 'Horse',
+    bearer: 'Ginny’s',
+    accent: '#f08a4b',
+    flavor: 'Steady stride, sure footing. You carry the club’s weight without ever breaking pace.',
     description: [
       'You manage BUCC’s budgets, sponsorships and spending.',
       'Every event that happens is one you made affordable.',
     ],
     groupChatUrl: '[PLACEHOLDER]',
-    svg: ringSvg,
+    image: horseImg,
   },
   {
     id: 'hr',
     name: 'Human Resources',
-    horcrux: "Slytherin’s Locket",
+    patronus: 'Otter',
+    bearer: 'Hermione’s',
     accent: '#f08aa8',
-    flavor: 'The heart of the house. You notice who is struggling before they say a word.',
+    flavor: 'Clever, warm and fiercely loyal. You make sure nobody in the room is left behind.',
     description: [
       'You recruit, onboard and look after BUCC’s members.',
       'A club is only as strong as its people, and you keep them together.',
     ],
     groupChatUrl: '[PLACEHOLDER]',
-    svg: locketSvg,
+    image: otterImg,
   },
   {
     id: 'press',
     name: 'Press Release and Publication',
-    horcrux: "Tom Riddle’s Diary",
-    accent: '#d98a4e',
-    flavor: 'Ink remembers everything. Your words will outlast the evening.',
+    patronus: 'Stag',
+    bearer: 'Harry’s',
+    accent: '#5fd0c4',
+    flavor: 'Bold, steady and impossible to miss. Where you walk, the whole hall looks up.',
     description: [
       'You write BUCC’s announcements, articles, newsletters and reports.',
       'What the club does becomes the record people read and share.',
     ],
     groupChatUrl: '[PLACEHOLDER]',
-    svg: diarySvg,
+    image: stagImg,
   },
   {
     id: 'rnd',
     name: 'Research and Development',
-    horcrux: "Ravenclaw’s Diadem",
-    accent: '#4fa8ff',
-    flavor: 'Wit beyond measure. You ask the question nobody else thought to ask.',
+    patronus: 'Doe',
+    bearer: 'Snape’s',
+    accent: '#ffd84d',
+    flavor: 'Quiet, devoted and always a step ahead. You lead others to what they did not know they needed.',
     description: [
       'You explore new tech, run projects and build tools for the club.',
       'Prototypes, experiments and learning in public, one idea at a time.',
     ],
     groupChatUrl: '[PLACEHOLDER]',
-    svg: diademSvg,
+    image: doeImg,
   },
 ] as const;
 
@@ -127,6 +136,11 @@ export const DEPARTMENT_IDS: readonly string[] = DEPARTMENTS.map((d) => d.id);
 
 export function getDepartment(id: string): Department | undefined {
   return DEPARTMENTS.find((d) => d.id === id);
+}
+
+/** "Harry’s Stag" */
+export function patronusLabel(d: Department): string {
+  return `${d.bearer} ${d.patronus}`;
 }
 
 export function hasGroupChat(d: Department): boolean {

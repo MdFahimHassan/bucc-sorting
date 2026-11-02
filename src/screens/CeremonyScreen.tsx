@@ -6,6 +6,7 @@ import {
   DEPARTMENTS,
   getDepartment,
   hasGroupChat,
+  patronusLabel,
   type Department,
 } from '../config/departments';
 import type { LookupResult } from '../lib/lookup';
@@ -34,8 +35,6 @@ interface Reveal {
   dept: Department;
   name: string;
 }
-
-const CRACK_D = 'M52 6L40 30l12 9-14 22 11 8-9 20 M40 30l-14 8 M38 61l-14 6 M50 69l16 10';
 
 /** Sorting moment, reveal and department card on one continuous stage. */
 export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId }: Props) {
@@ -67,7 +66,6 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
     const items = all<HTMLElement>('.hx');
     const bodies = all<HTMLElement>('.hx-body');
     const auras = all<HTMLElement>('.hx-aura');
-    const cracks = all<SVGElement>('.hx-crack');
 
     // ----- ring physics, driven by one ticker callback -----
     const S = { angle: 0, speed: 0.55, shake: 0 };
@@ -212,7 +210,7 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
           particles.setSpeed(1.4);
           if (cancelled) return;
 
-          // 2b. flash one by one, decelerating, ending on the chosen horcrux
+          // 2b. flash one by one, decelerating, ending on the chosen patronus
           const K = items.length + idx;
           const flashTl = gsap.timeline();
           let t = 0;
@@ -237,7 +235,7 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
           await timelineDone(flashTl);
           if (cancelled) return;
 
-          // 2c. the other six crack and fade
+          // 2c. the other six dissolve into silver mist
           const crackTl = gsap.timeline();
           let n = 0;
           items.forEach((it, i) => {
@@ -245,22 +243,21 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
             const at = n++ * 0.06;
             const c = center(it);
             crackTl
-              .to(cracks[i]!, { opacity: 1, duration: 0.1 }, at)
-              .to(bodies[i]!, { x: 3, rotation: 5, duration: 0.05, yoyo: true, repeat: 3 }, at)
-              .call(() => particles.burst(c.x, c.y, '#b9b2c8', 3), [], at + 0.15)
+              .call(() => particles.burst(c.x, c.y, '#cfe9ff', 6), [], at + 0.1)
               .to(
                 bodies[i]!,
-                { opacity: 0, scale: 0.78, y: 16, rotation: -10, duration: 0.45, ease: 'power2.in' },
-                at + 0.2,
+                { opacity: 0, scale: 1.25, y: -22, filter: 'blur(5px)', duration: 0.6, ease: 'power2.out' },
+                at + 0.05,
               );
           });
           crackTl.to([hatWrap, stageGlow], { opacity: 0, duration: 0.5 }, 0.2);
           await timelineDone(crackTl);
           if (cancelled) return;
 
-          // 2d. chosen horcrux travels to the centre
+          // 2d. chosen patronus travels to the centre
           ringOn = false;
           driven = idx;
+          chosen.style.willChange = 'auto'; // let the browser re-rasterise sharply at 2.6x
           const C = { ...pos[idx]! };
           const apply = () => {
             chosen.style.transform = `translate3d(${C.x.toFixed(1)}px,${C.y.toFixed(1)}px,0) scale(${C.s.toFixed(3)})`;
@@ -387,10 +384,7 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
             <div key={d.id} className="hx" style={{ ['--c' as string]: d.accent }}>
               <div className="hx-body">
                 <span className="hx-aura" />
-                <span className="hx-icon" dangerouslySetInnerHTML={{ __html: d.svg }} />
-                <svg className="hx-crack" viewBox="0 0 100 100" fill="none" stroke="#f4efe0" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-                  <path d={CRACK_D} />
-                </svg>
+                <span className="hx-icon" style={{ ['--img' as string]: `url(${d.image})` }} />
               </div>
             </div>
           ))}
@@ -422,7 +416,7 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
         <div className="details">
           {dept && (
             <>
-              <p className="hx-label">Your horcrux is {dept.horcrux}.</p>
+              <p className="hx-label">Your Patronus is {patronusLabel(dept)}.</p>
               <p className="desc">
                 <span>{dept.description[0]}</span>
                 <span>{dept.description[1]}</span>

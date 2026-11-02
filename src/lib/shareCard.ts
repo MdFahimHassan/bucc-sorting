@@ -2,7 +2,7 @@
  * Lazy-loaded: builds a 1080x1920 PNG story card on a canvas.
  * Imported dynamically from the card screen so it never touches the first-load budget.
  */
-import { EVENT, type Department } from '../config/departments';
+import { EVENT, patronusLabel, type Department } from '../config/departments';
 
 export const CARD_W = 1080;
 export const CARD_H = 1920;
@@ -20,15 +20,27 @@ async function loadFonts(): Promise<void> {
   ]).catch(() => undefined);
 }
 
-function horcruxImage(dept: Department): Promise<HTMLImageElement> {
-  const svg = dept.svg
-    .replace(/currentColor/g, dept.accent)
-    .replace(/var\(--gold, #d9b45b\)/g, GOLD_BRIGHT);
+/** Loads the white patronus image and tints it with the department colour (white core, coloured edge). */
+function patronusImage(dept: Department): Promise<HTMLCanvasElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('horcrux image failed'));
-    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = img.naturalWidth;
+      c.height = img.naturalHeight;
+      const g = c.getContext('2d');
+      if (!g) return reject(new Error('no 2d context'));
+      g.drawImage(img, 0, 0);
+      g.globalCompositeOperation = 'source-in';
+      const grad = g.createRadialGradient(c.width / 2, c.height * 0.45, 0, c.width / 2, c.height * 0.45, c.width * 0.5);
+      grad.addColorStop(0, '#ffffff');
+      grad.addColorStop(0.78, dept.accent);
+      g.fillStyle = grad;
+      g.fillRect(0, 0, c.width, c.height);
+      resolve(c);
+    };
+    img.onerror = () => reject(new Error('patronus image failed'));
+    img.src = dept.image;
   });
 }
 
@@ -73,7 +85,7 @@ function fitText(
 
 export async function renderCard(name: string, dept: Department): Promise<Blob> {
   await loadFonts();
-  const img = await horcruxImage(dept).catch(() => null);
+  const img = await patronusImage(dept).catch(() => null);
 
   const canvas = document.createElement('canvas');
   canvas.width = CARD_W;
@@ -91,7 +103,7 @@ export async function renderCard(name: string, dept: Department): Promise<Blob> 
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, CARD_W, CARD_H);
 
-  // Department-coloured glow behind the horcrux
+  // Department-coloured glow behind the patronus
   const glow = ctx.createRadialGradient(cx, 760, 0, cx, 760, 640);
   glow.addColorStop(0, `rgba(${rgb},0.55)`);
   glow.addColorStop(0.45, `rgba(${rgb},0.16)`);
@@ -138,9 +150,9 @@ export async function renderCard(name: string, dept: Department): Promise<Blob> 
   ctx.fillText(EVENT.label.toUpperCase(), cx, 272);
   if ('letterSpacing' in ctx) (ctx as unknown as { letterSpacing: string }).letterSpacing = '0px';
 
-  // Horcrux
+  // Patronus
   if (img) {
-    const size = 560;
+    const size = 700;
     ctx.drawImage(img, cx - size / 2, 760 - size / 2, size, size);
   }
 
@@ -180,11 +192,11 @@ export async function renderCard(name: string, dept: Department): Promise<Blob> 
   ctx.shadowBlur = 0;
   ctx.shadowColor = 'transparent';
 
-  // Horcrux + flavour
+  // Patronus + flavour
   y += 18;
   ctx.fillStyle = 'rgba(236,230,214,0.78)';
   ctx.font = '600 34px "Cinzel", Georgia, serif';
-  ctx.fillText(`Horcrux: ${dept.horcrux}`, cx, y);
+  ctx.fillText(`Patronus: ${patronusLabel(dept)}`, cx, y);
   y += 66;
   ctx.fillStyle = '#ece6d6';
   const fFit = fitText(ctx, dept.flavor, (px) => `italic ${px}px "IM Fell English", Georgia, serif`, 42, 820, 3);
