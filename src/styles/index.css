@@ -16,6 +16,13 @@
   src: url('../assets/fonts/cinzel-decorative-latin-700-normal.woff2') format('woff2');
 }
 @font-face {
+  font-family: 'Almendra SC';
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url('../assets/fonts/almendra-sc-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
   font-family: 'IM Fell English';
   font-weight: 400;
   font-style: normal;
@@ -55,6 +62,8 @@
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 
   --font-display: 'Cinzel Decorative', 'Cinzel', Georgia, serif;
+  /* Intro title only. Drop a licensed 'Harry P' @font-face in and put it first here. */
+  --font-title: 'Almendra SC', 'Cinzel Decorative', Georgia, serif;
   --font-heading: 'Cinzel', Georgia, serif;
   --font-body: 'IM Fell English', Georgia, 'Times New Roman', serif;
 
@@ -295,16 +304,45 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: clamp(2.5rem, 12.5vw, 5.75rem);
-  line-height: 1.12;
-  letter-spacing: 0.02em;
+  align-items: center;
+  /* headroom for the hat on the T */
+  padding-top: 0.5em;
+  font-family: var(--font-title);
+  font-weight: 400;
+  font-size: clamp(2.6rem, 13vw, 6.25rem);
+  line-height: 1.08;
+  letter-spacing: 0.03em;
   color: var(--gold-bright);
-  text-shadow: 0 0 28px rgb(217 180 91 / 0.35);
+  -webkit-text-stroke: 0.012em currentColor;
+  text-shadow: 0 0 0.35em rgb(217 180 91 / 0.38);
 }
 .intro-line {
   display: block;
+  white-space: nowrap;
+}
+.intro-word {
+  display: inline-block;
+  margin-right: 0.28em;
+}
+.intro-word:last-child {
+  margin-right: 0;
+}
+.intro-letter {
+  position: relative;
+  display: inline-block;
+  opacity: 0;
+}
+.intro-hat {
+  position: absolute;
+  left: -0.1em;
+  bottom: 70%;
+  width: 0.95em;
+  height: 0.95em;
+  color: var(--gold-bright);
+  filter: none;
+  opacity: 0;
+  pointer-events: none;
+  overflow: visible;
 }
 .intro-sub {
   margin: 1.4rem 0 3rem;
@@ -1008,4 +1046,182 @@
 }
 .fallback .btn-gold {
   margin-top: 1.25rem;
+}
+/* ---------- Intro: wand that writes ---------- */
+.writing-wand {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  z-index: 31;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.writing-wand-body {
+  position: absolute;
+  left: -6px;
+  top: -6px;
+  overflow: visible;
+}
+.writing-wand-halo {
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  left: -45px;
+  top: -45px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, #fffbe8, rgb(255 214 140 / 0.55) 35%, transparent);
+  animation: flicker 1.1s linear infinite;
+}
+@media (max-width: 600px) {
+  .writing-wand-body {
+    transform: scale(0.7);
+    transform-origin: 6px 6px;
+  }
+}
+
+/* ---------- Intro: enchanted backdrop (Great Hall at night) ---------- */
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.bd-sky {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 90% 55% at 50% 100%, rgb(255 170 80 / 0.16), transparent 70%),
+    radial-gradient(ellipse 120% 70% at 50% 0%, rgb(40 52 108 / 0.75), transparent 70%),
+    linear-gradient(#0a0d1f, #05060d 80%);
+}
+.bd-stars {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  animation: twinkle 4.6s ease-in-out infinite;
+}
+.bd-stars-b {
+  width: 1.5px;
+  height: 1.5px;
+  animation-duration: 6.4s;
+  animation-delay: -2.3s;
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+.bd-mist {
+  position: absolute;
+  left: -30%;
+  bottom: 4%;
+  width: 160%;
+  height: 38%;
+  background: radial-gradient(ellipse 50% 50% at 50% 60%, rgb(120 140 200 / 0.14), transparent 70%);
+  animation: mist 38s ease-in-out infinite alternate;
+  will-change: transform;
+}
+.bd-mist-b {
+  bottom: 16%;
+  opacity: 0.7;
+  animation-duration: 52s;
+  animation-direction: alternate-reverse;
+}
+@keyframes mist {
+  from { transform: translate3d(-8%, 0, 0); }
+  to { transform: translate3d(8%, 0, 0); }
+}
+
+/* Floating candles */
+.candle {
+  position: absolute;
+  width: 14px;
+  height: 64px;
+  margin-left: -7px;
+  transform-origin: 50% 0;
+  scale: var(--s, 1);
+  opacity: var(--dim, 1);
+  animation: bob ease-in-out infinite alternate;
+  will-change: transform;
+}
+@keyframes bob {
+  from { transform: translate3d(0, -7px, 0) rotate(-1.5deg); }
+  to { transform: translate3d(0, 7px, 0) rotate(1.5deg); }
+}
+.candle-wax {
+  position: absolute;
+  left: 2px;
+  bottom: 0;
+  width: 10px;
+  height: 46px;
+  border-radius: 2px 2px 3px 3px;
+  background: linear-gradient(90deg, #8a7a5a, #ece0bd 45%, #a39270);
+}
+.candle-flame {
+  position: absolute;
+  left: 3px;
+  bottom: 46px;
+  width: 8px;
+  height: 15px;
+  border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
+  background: radial-gradient(ellipse at 50% 70%, #fffbe8 10%, #ffd27a 50%, rgb(255 140 50 / 0) 100%);
+  transform-origin: 50% 100%;
+  animation: flame 0.9s ease-in-out infinite alternate;
+}
+.candle-glow {
+  position: absolute;
+  left: -46px;
+  bottom: -2px;
+  width: 106px;
+  height: 106px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(255 190 100 / 0.3), rgb(255 150 60 / 0.09) 60%, transparent);
+  animation: flicker 2.7s linear infinite;
+}
+@keyframes flame {
+  from { transform: scale(1, 1) rotate(-3deg); }
+  to { transform: scale(0.88, 1.1) rotate(3deg); }
+}
+
+/* Castle silhouette */
+.bd-castle {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 30vh;
+  min-height: 150px;
+  max-height: 300px;
+  /* soften the hill ends where the drawing stops on wide screens */
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+}
+.bd-ground {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(min(30vh, 300px) * 0.12 + 2px);
+  background: #080b19;
+}
+.win {
+  animation: win 5s ease-in-out infinite;
+}
+.win.w2 { animation-delay: -1.7s; animation-duration: 6.5s; }
+.win.w3 { animation-delay: -3.1s; animation-duration: 4.3s; }
+@keyframes win {
+  0%, 100% { opacity: 0.25; }
+  45% { opacity: 1; }
+  60% { opacity: 0.6; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bd-stars, .bd-mist, .candle, .candle-flame, .candle-glow, .win, .writing-wand-halo {
+    animation: none;
+  }
 }
