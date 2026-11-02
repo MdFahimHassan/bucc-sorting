@@ -26,6 +26,11 @@ Sorting Hat deliberate, and are revealed to one of seven departments, each repre
 Vite, React, TypeScript (strict), Tailwind CSS, GSAP, vite-plugin-pwa, Vitest.
 Self-hosted Cinzel, Cinzel Decorative and IM Fell English (SIL OFL).
 
+## Credits
+
+Intro title font: "Harry P" by Phoenix Phonts & GeM (Freeware, via fontspace.com), subset to Basic Latin
+with `scripts/make-title-font.py`.
+
 ## Quality
 
 Lighthouse (mobile, production build): Performance 98, Accessibility 100, Best Practices 100.

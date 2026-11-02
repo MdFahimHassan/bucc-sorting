@@ -15,12 +15,14 @@
   font-display: swap;
   src: url('../assets/fonts/cinzel-decorative-latin-700-normal.woff2') format('woff2');
 }
+/* Intro title only. "Harry P" by Phoenix Phonts & GeM (Freeware), Basic Latin subset.
+   Generate the file with: python scripts/make-title-font.py HarryP-MVZ6w.ttf */
 @font-face {
-  font-family: 'Almendra SC';
+  font-family: 'Harry P';
   font-weight: 400;
   font-style: normal;
   font-display: swap;
-  src: url('../assets/fonts/almendra-sc-latin-400-normal.woff2') format('woff2');
+  src: url('../assets/fonts/harry-p-latin-400-normal.woff2') format('woff2');
 }
 @font-face {
   font-family: 'IM Fell English';
@@ -62,8 +64,8 @@
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 
   --font-display: 'Cinzel Decorative', 'Cinzel', Georgia, serif;
-  /* Intro title only. Drop a licensed 'Harry P' @font-face in and put it first here. */
-  --font-title: 'Almendra SC', 'Cinzel Decorative', Georgia, serif;
+  /* Intro title only. */
+  --font-title: 'Harry P', 'Cinzel Decorative', Georgia, serif;
   --font-heading: 'Cinzel', Georgia, serif;
   --font-body: 'IM Fell English', Georgia, 'Times New Roman', serif;
 
@@ -301,24 +303,44 @@
   text-align: center;
 }
 .intro-title {
+  /* Tuning knobs for the hat on the T. Adjust these if the font metrics differ. */
+  --hat-size: 0.95em;
+  --hat-x: 0.04em;
+  --hat-y: 0.2em;
+  --hat-tilt: -12;
+  --title-gap: 0.12em;
   margin: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
+  row-gap: var(--title-gap);
   /* headroom for the hat on the T */
-  padding-top: 0.5em;
+  padding-top: 0.75em;
   font-family: var(--font-title);
   font-weight: 400;
-  font-size: clamp(2.6rem, 13vw, 6.25rem);
-  line-height: 1.08;
+  font-size: clamp(2.8rem, 14vw, 6.5rem);
+  /* tall enough that the T's tail clears the second line */
+  line-height: 1.12;
   letter-spacing: 0.03em;
   color: var(--gold-bright);
-  -webkit-text-stroke: 0.012em currentColor;
   text-shadow: 0 0 0.35em rgb(217 180 91 / 0.38);
 }
+/* Each line is uncovered by ONE soft mask whose edge follows the wand tip.
+   The padding gives glyph overhangs (the T's tail, glow) room inside the mask box;
+   the negative margin cancels it so layout is unchanged. */
 .intro-line {
+  --reveal: 0px;
+  --fade: 0.35em;
   display: block;
   white-space: nowrap;
+  padding: 0.45em 0.4em 0.6em;
+  margin: -0.45em -0.4em -0.6em;
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(var(--reveal) - var(--fade)), transparent var(--reveal));
+  mask-image: linear-gradient(90deg, #000 calc(var(--reveal) - var(--fade)), transparent var(--reveal));
+}
+.intro-line.is-written {
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 .intro-word {
   display: inline-block;
@@ -330,14 +352,13 @@
 .intro-letter {
   position: relative;
   display: inline-block;
-  opacity: 0;
 }
 .intro-hat {
   position: absolute;
-  left: -0.1em;
-  bottom: 70%;
-  width: 0.95em;
-  height: 0.95em;
+  left: calc(50% - var(--hat-size) / 2 + var(--hat-x));
+  bottom: calc(72% + var(--hat-y));
+  width: var(--hat-size);
+  height: var(--hat-size);
   color: var(--gold-bright);
   filter: none;
   opacity: 0;
@@ -1135,55 +1156,129 @@
   to { transform: translate3d(8%, 0, 0); }
 }
 
-/* Floating candles */
-.candle {
+/* Moon */
+.bd-moon {
   position: absolute;
-  width: 14px;
-  height: 64px;
-  margin-left: -7px;
+  left: 70%;
+  top: 18%;
+  width: clamp(5.5rem, 20vmin, 15rem);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+}
+.bd-moon-halo {
+  position: absolute;
+  inset: -90%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(190 205 255 / 0.2), rgb(150 170 235 / 0.07) 55%, transparent);
+  animation: moon-pulse 16s ease-in-out infinite;
+}
+.bd-moon-disc {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 38%, rgb(120 125 120 / 0.2) 0 7%, transparent 8%),
+    radial-gradient(circle at 62% 58%, rgb(120 125 120 / 0.16) 0 10%, transparent 11%),
+    radial-gradient(circle at 48% 24%, rgb(120 125 120 / 0.13) 0 5%, transparent 6%),
+    radial-gradient(circle at 38% 34%, #fffdf2 0%, #ece4cb 52%, #c3bb9d 100%);
+  opacity: 0.8;
+}
+@keyframes moon-pulse {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
+}
+
+/* Moonlight shafts: soft gradients that sway very slowly around the moon */
+.bd-shafts {
+  position: absolute;
+  inset: 0;
+}
+.bd-shaft {
+  --a: 14deg;
+  position: absolute;
+  left: 70%;
+  top: 18%;
+  width: clamp(7rem, 30vmin, 20rem);
+  height: 92vh;
+  margin-left: calc(clamp(7rem, 30vmin, 20rem) / -2);
   transform-origin: 50% 0;
-  scale: var(--s, 1);
-  opacity: var(--dim, 1);
-  animation: bob ease-in-out infinite alternate;
+  transform: rotate(var(--a));
+  background: linear-gradient(180deg, transparent, rgb(200 215 255 / 0.12) 14%, rgb(200 215 255 / 0.05) 58%, transparent 92%);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 32%, #000 68%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 32%, #000 68%, transparent);
+  animation: shaft-sway 24s ease-in-out infinite alternate;
   will-change: transform;
 }
-@keyframes bob {
-  from { transform: translate3d(0, -7px, 0) rotate(-1.5deg); }
-  to { transform: translate3d(0, 7px, 0) rotate(1.5deg); }
+.bd-shaft-b {
+  --a: 26deg;
+  width: clamp(5rem, 20vmin, 14rem);
+  margin-left: calc(clamp(5rem, 20vmin, 14rem) / -2);
+  opacity: 0.8;
+  animation-duration: 29s;
+  animation-direction: alternate-reverse;
 }
-.candle-wax {
-  position: absolute;
-  left: 2px;
-  bottom: 0;
-  width: 10px;
-  height: 46px;
-  border-radius: 2px 2px 3px 3px;
-  background: linear-gradient(90deg, #8a7a5a, #ece0bd 45%, #a39270);
+.bd-shaft-c {
+  --a: 5deg;
+  width: clamp(4rem, 16vmin, 11rem);
+  margin-left: calc(clamp(4rem, 16vmin, 11rem) / -2);
+  opacity: 0.7;
+  animation-duration: 21s;
 }
-.candle-flame {
-  position: absolute;
-  left: 3px;
-  bottom: 46px;
-  width: 8px;
-  height: 15px;
-  border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
-  background: radial-gradient(ellipse at 50% 70%, #fffbe8 10%, #ffd27a 50%, rgb(255 140 50 / 0) 100%);
-  transform-origin: 50% 100%;
-  animation: flame 0.9s ease-in-out infinite alternate;
+@keyframes shaft-sway {
+  from { transform: rotate(calc(var(--a) - 2.5deg)); }
+  to { transform: rotate(calc(var(--a) + 2.5deg)); }
 }
-.candle-glow {
+
+/* Dust motes living inside a shaft (they sway with it) */
+.bd-mote {
   position: absolute;
-  left: -46px;
-  bottom: -2px;
-  width: 106px;
-  height: 106px;
   border-radius: 50%;
-  background: radial-gradient(closest-side, rgb(255 190 100 / 0.3), rgb(255 150 60 / 0.09) 60%, transparent);
-  animation: flicker 2.7s linear infinite;
+  background: #fff6dc;
+  opacity: 0;
+  animation: mote linear infinite;
 }
-@keyframes flame {
-  from { transform: scale(1, 1) rotate(-3deg); }
-  to { transform: scale(0.88, 1.1) rotate(3deg); }
+@keyframes mote {
+  0% { transform: translate3d(0, 0, 0); opacity: 0; }
+  15% { opacity: var(--peak, 0.6); }
+  85% { opacity: var(--peak, 0.6); }
+  100% { transform: translate3d(var(--dx, 20px), -120px, 0); opacity: 0; }
+}
+
+/* Owl: flies right to left across the moon, then rests off-screen until the next lap */
+.bd-owl {
+  position: absolute;
+  left: 0;
+  top: 17%;
+  width: clamp(3rem, 9vmin, 5rem);
+  aspect-ratio: 64 / 44;
+  opacity: 0.95;
+  animation: owl-fly 15s linear 5s infinite backwards;
+  will-change: transform;
+}
+.bd-owl-bob {
+  width: 100%;
+  height: 100%;
+  animation: owl-arc 15s ease-in-out 5s infinite backwards;
+}
+.bd-wing {
+  transform-box: fill-box;
+  transform-origin: 50% 70%;
+  animation: owl-flap 0.5s ease-in-out infinite alternate;
+}
+@keyframes owl-fly {
+  0% { transform: translate3d(108vw, 0, 0); }
+  40% { transform: translate3d(-14vw, 0, 0); }
+  100% { transform: translate3d(-14vw, 0, 0); }
+}
+@keyframes owl-arc {
+  0% { transform: translate3d(0, 9vh, 0); }
+  15% { transform: translate3d(0, -2vh, 0); }
+  40% { transform: translate3d(0, 8vh, 0); }
+  100% { transform: translate3d(0, 8vh, 0); }
+}
+@keyframes owl-flap {
+  from { transform: scaleY(1); }
+  to { transform: scaleY(-0.55); }
 }
 
 /* Castle silhouette */
@@ -1195,6 +1290,7 @@
   height: 30vh;
   min-height: 150px;
   max-height: 300px;
+  overflow: visible;
   /* soften the hill ends where the drawing stops on wide screens */
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
   mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
@@ -1219,7 +1315,19 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bd-stars, .bd-mist, .candle, .candle-flame, .candle-glow, .win, .writing-wand-halo {
+  .bd-stars, .bd-mist, .bd-moon-halo, .bd-shaft, .bd-mote, .bd-owl, .bd-owl-bob, .bd-wing,
+  .win, .writing-wand-halo {
     animation: none;
+  }
+  .bd-owl,
+  .writing-wand {
+    display: none;
+  }
+  .bd-mote {
+    opacity: 0.4;
+  }
+  .intro-line {
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 }
