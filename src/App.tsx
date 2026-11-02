@@ -82,30 +82,32 @@ function Main() {
   return (
     <>
       <ParticleLayer />
-      {phase === 'intro' && (
-        <IntroScreen
-          onEnter={() => {
-            // First tap: fetch the (tiny) audio chunk in the background. Sound stays off until toggled.
-            preloadAudio();
-            setPhase('id');
-          }}
-        />
-      )}
-      {phase !== 'intro' && <SoundToggle />}
-      {phase === 'id' && (
-        <IdEntryScreen onSubmit={handleSubmit} lockedUntil={lockedUntil} initialValue={lastId} />
-      )}
-      {phase === 'ceremony' && lookup && (
-        <CeremonyScreen
-          key={ceremonyKey}
-          lookup={lookup}
-          onFound={handleFound}
-          onFail={handleFail}
-          onReplay={handleReplay}
-          onAnotherId={handleAnotherId}
-        />
-      )}
-      {phase === 'notfound' && <NotFoundScreen failure={failure} onRetry={() => setPhase('id')} />}
+      <main>
+        {phase === 'intro' && (
+          <IntroScreen
+            onEnter={() => {
+              // First tap: fetch the (tiny) audio chunk in the background. Sound stays off until toggled.
+              preloadAudio();
+              setPhase('id');
+            }}
+          />
+        )}
+        {phase !== 'intro' && <SoundToggle />}
+        {phase === 'id' && (
+          <IdEntryScreen onSubmit={handleSubmit} lockedUntil={lockedUntil} initialValue={lastId} />
+        )}
+        {phase === 'ceremony' && lookup && (
+          <CeremonyScreen
+            key={ceremonyKey}
+            lookup={lookup}
+            onFound={handleFound}
+            onFail={handleFail}
+            onReplay={handleReplay}
+            onAnotherId={handleAnotherId}
+          />
+        )}
+        {phase === 'notfound' && <NotFoundScreen failure={failure} onRetry={() => setPhase('id')} />}
+      </main>
       <div className="film-layer" aria-hidden="true" />
     </>
   );

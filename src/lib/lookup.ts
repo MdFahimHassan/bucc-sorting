@@ -32,7 +32,7 @@ let cached: Promise<DataFile> | null = null;
 
 /** Fetch data.json once. Retries on the next call if the first attempt failed. */
 export function loadData(url = '/data.json'): Promise<DataFile> {
-  cached ??= fetch(url, { cache: 'force-cache' })
+  cached ??= fetch(url, { cache: 'no-cache' })
     .then((r) => {
       if (!r.ok) throw new Error(`data.json: HTTP ${r.status}`);
       return r.json() as Promise<unknown>;
