@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { ErrorBoundary, rememberResult } from './components/ErrorBoundary';
 import { ParticleLayer } from './components/ParticleLayer';
+import { SoundToggle } from './components/SoundToggle';
+import { preloadAudio } from './lib/sound';
 import { loadData, lookupParticipant, type LookupResult } from './lib/lookup';
 import { useWandTrail } from './lib/useWandTrail';
 import { CeremonyScreen } from './screens/CeremonyScreen';
@@ -14,6 +17,14 @@ const WRONG_TRIES_BEFORE_PAUSE = 3;
 const PAUSE_MS = 4000;
 
 export function App() {
+  return (
+    <ErrorBoundary>
+      <Main />
+    </ErrorBoundary>
+  );
+}
+
+function Main() {
   const [phase, setPhase] = useState<Phase>('intro');
   const [lookup, setLookup] = useState<Promise<LookupResult> | null>(null);
   const [ceremonyKey, setCeremonyKey] = useState(0);
@@ -39,6 +50,7 @@ export function App() {
 
   const handleFound = useCallback((r: Found) => {
     lastFound.current = r;
+    rememberResult(r.person.name, r.person.dept);
     wrongTries.current = 0;
     setLockedUntil(null);
   }, []);
@@ -70,7 +82,16 @@ export function App() {
   return (
     <>
       <ParticleLayer />
-      {phase === 'intro' && <IntroScreen onEnter={() => setPhase('id')} />}
+      {phase === 'intro' && (
+        <IntroScreen
+          onEnter={() => {
+            // First tap: fetch the (tiny) audio chunk in the background. Sound stays off until toggled.
+            preloadAudio();
+            setPhase('id');
+          }}
+        />
+      )}
+      {phase !== 'intro' && <SoundToggle />}
       {phase === 'id' && (
         <IdEntryScreen onSubmit={handleSubmit} lockedUntil={lockedUntil} initialValue={lastId} />
       )}

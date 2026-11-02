@@ -11,6 +11,8 @@ import {
 import type { LookupResult } from '../lib/lookup';
 import { prefersReducedMotion, sleep } from '../lib/motion';
 import { particles } from '../lib/particles';
+import { playChime } from '../lib/sound';
+import { ShareSheet } from '../components/ShareSheet';
 
 const TAU = Math.PI * 2;
 const HAT_LINES = [
@@ -42,6 +44,8 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
   propsRef.current = { onFound, onFail };
   const [reveal, setReveal] = useState<Reveal | null>(null);
   const [announce, setAnnounce] = useState('');
+  const [sheet, setSheet] = useState<{ url: string; blob: Blob; fileName: string; native: boolean } | null>(null);
+  const [saving, setSaving] = useState<'idle' | 'busy' | 'error'>('idle');
 
   useEffect(() => {
     const root = rootRef.current;
@@ -271,6 +275,7 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
           // 2e. burst + flash in the department colour
           const c = center(chosen);
           particles.burst(c.x, c.y, dept.accent, 44);
+          playChime();
           particles.setEmbers(0.75, [dept.accent, dept.accent, '#ffe3a1']);
           particles.setSpeed(1.8);
           gsap
@@ -337,6 +342,34 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
 
   const dept = reveal?.dept;
 
+  const saveCard = async () => {
+    if (!reveal || saving === 'busy') return;
+    setSaving('busy');
+    try {
+      // Lazy chunk: the canvas generator is only fetched when someone asks for the card.
+      const m = await import('../lib/shareCard');
+      const blob = await m.renderCard(reveal.name, reveal.dept);
+      const fileName = m.cardFileName(reveal.name);
+      const text = `I was sorted into ${reveal.dept.name} at BUCC Fall 26!`;
+      const outcome = await m.shareCard(blob, fileName, text);
+      if (outcome === 'shared' || outcome === 'cancelled') {
+        setSaving('idle');
+        return;
+      }
+      const url = URL.createObjectURL(blob);
+      m.downloadBlob(blob, fileName);
+      setSheet({ url, blob, fileName, native: false });
+      setSaving('idle');
+    } catch (e) {
+      console.error(e);
+      setSaving('error');
+    }
+  };
+  const closeSheet = () => {
+    if (sheet) URL.revokeObjectURL(sheet.url);
+    setSheet(null);
+  };
+
   return (
     <div ref={rootRef} className="screen ceremony" data-screen="ceremony">
       <div className="ceremony-shake">
@@ -395,6 +428,14 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
                 <span>{dept.description[1]}</span>
               </p>
               <div className="actions">
+                <button type="button" className="btn-line press" onClick={() => void saveCard()} disabled={saving === 'busy'}>
+                  {saving === 'busy' ? 'Making your card\u2026' : 'Save my card'}
+                </button>
+                {saving === 'error' && (
+                  <p className="card-error" role="alert">
+                    The card could not be made on this device. Try again, or screenshot this screen.
+                  </p>
+                )}
                 {hasGroupChat(dept) && (
                   <a
                     className="btn-glow press"
@@ -419,6 +460,18 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
         </div>
       </div>
 
+      {sheet && (
+        <ShareSheet
+          url={sheet.url}
+          fileName={sheet.fileName}
+          canNativeShare={false}
+          onShare={() => undefined}
+          onDownload={() => {
+            void import('../lib/shareCard').then((m) => m.downloadBlob(sheet.blob, sheet.fileName));
+          }}
+          onClose={closeSheet}
+        />
+      )}
       <div className="flash" aria-hidden="true" />
       <p className="sr-only" role="status" aria-live="polite">
         {announce}
