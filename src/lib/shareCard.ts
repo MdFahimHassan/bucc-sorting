@@ -2,6 +2,7 @@
  * Lazy-loaded: builds a 1080x1920 PNG story card on a canvas.
  * Imported dynamically from the card screen so it never touches the first-load budget.
  */
+import { patronusUrl } from '../config/patronusImages';
 import { EVENT, patronusLabel, type Department } from '../config/departments';
 
 export const CARD_W = 1080;
@@ -40,7 +41,7 @@ function patronusImage(dept: Department): Promise<HTMLCanvasElement> {
       resolve(c);
     };
     img.onerror = () => reject(new Error('patronus image failed'));
-    img.src = dept.image;
+    img.src = patronusUrl(dept.id);
   });
 }
 

@@ -9,6 +9,7 @@ import {
   patronusLabel,
   type Department,
 } from '../config/departments';
+import { patronusUrl } from '../config/patronusImages';
 import type { LookupResult } from '../lib/lookup';
 import { prefersReducedMotion, sleep } from '../lib/motion';
 import { particles } from '../lib/particles';
@@ -384,7 +385,7 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
             <div key={d.id} className="hx" style={{ ['--c' as string]: d.accent }}>
               <div className="hx-body">
                 <span className="hx-aura" />
-                <span className="hx-icon" style={{ ['--img' as string]: `url(${d.image})` }} />
+                <span className="hx-icon" style={{ ['--img' as string]: `url(${patronusUrl(d.id)})` }} />
               </div>
             </div>
           ))}

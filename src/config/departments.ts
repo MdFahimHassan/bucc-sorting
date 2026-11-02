@@ -1,11 +1,3 @@
-import doeImg from '../assets/patronus/doe.webp';
-import hareImg from '../assets/patronus/hare.webp';
-import horseImg from '../assets/patronus/horse.webp';
-import otterImg from '../assets/patronus/otter.webp';
-import phoenixImg from '../assets/patronus/phoenix.webp';
-import stagImg from '../assets/patronus/stag.webp';
-import terrierImg from '../assets/patronus/terrier.webp';
-
 /**
  * THE ONE PLACE TO EDIT DEPARTMENT MAPPING.
  *
@@ -27,8 +19,6 @@ export interface Department {
   /** Two lines on what the department does. */
   description: [string, string];
   groupChatUrl: string;
-  /** White patronus image (alpha only); tinted with `accent` at runtime. */
-  image: string;
 }
 
 export const DEPARTMENTS: readonly Department[] = [
@@ -44,7 +34,6 @@ export const DEPARTMENTS: readonly Department[] = [
       'Where the club has something to say, you decide how far it travels.',
     ],
     groupChatUrl: '[PLACEHOLDER]',
-    image: phoenixImg,
   },
   {
     id: 'creative',
@@ -58,7 +47,6 @@ export const DEPARTMENTS: readonly Department[] = [
       'Every event starts as a blank page and leaves as something people remember.',
     ],
     groupChatUrl: '[PLACEHOLDER]',
-    image: terrierImg,
   },
   {
     id: 'events',
@@ -72,7 +60,6 @@ export const DEPARTMENTS: readonly Department[] = [
       'Logistics, hosting and the thousand small details that make a day go right.',
     ],
     groupChatUrl: '[PLACEHOLDER]',
-    image: hareImg,
   },
   {
     id: 'finance',
@@ -86,7 +73,6 @@ export const DEPARTMENTS: readonly Department[] = [
       'Every event that happens is one you made affordable.',
     ],
     groupChatUrl: '[PLACEHOLDER]',
-    image: horseImg,
   },
   {
     id: 'hr',
@@ -100,7 +86,6 @@ export const DEPARTMENTS: readonly Department[] = [
       'A club is only as strong as its people, and you keep them together.',
     ],
     groupChatUrl: '[PLACEHOLDER]',
-    image: otterImg,
   },
   {
     id: 'press',
@@ -114,7 +99,6 @@ export const DEPARTMENTS: readonly Department[] = [
       'What the club does becomes the record people read and share.',
     ],
     groupChatUrl: '[PLACEHOLDER]',
-    image: stagImg,
   },
   {
     id: 'rnd',
@@ -128,7 +112,6 @@ export const DEPARTMENTS: readonly Department[] = [
       'Prototypes, experiments and learning in public, one idea at a time.',
     ],
     groupChatUrl: '[PLACEHOLDER]',
-    image: doeImg,
   },
 ] as const;
 
