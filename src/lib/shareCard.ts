@@ -2,7 +2,7 @@
  * Lazy-loaded: builds a 1080x1920 PNG story card on a canvas.
  * Imported dynamically from the card screen so it never touches the first-load budget.
  */
-import { patronusUrl } from '../config/patronusImages';
+import { crestUrl } from '../config/crestImages';
 import { EVENT, patronusLabel, type Department } from '../config/departments';
 
 export const CARD_W = 1080;
@@ -21,13 +21,13 @@ async function loadFonts(): Promise<void> {
   ]).catch(() => undefined);
 }
 
-/** Loads the patronus cut-out (silver-blue, with alpha). The department colour is added as glow when it is drawn. */
-function patronusImage(dept: Department): Promise<HTMLImageElement> {
+/** Loads the department crest (already in the department colour, with alpha). */
+function crestImage(dept: Department): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('patronus image failed'));
-    img.src = patronusUrl(dept.id);
+    img.onerror = () => reject(new Error('crest image failed'));
+    img.src = crestUrl(dept.id);
   });
 }
 
@@ -72,7 +72,7 @@ function fitText(
 
 export async function renderCard(name: string, dept: Department): Promise<Blob> {
   await loadFonts();
-  const img = await patronusImage(dept).catch(() => null);
+  const img = await crestImage(dept).catch(() => null);
 
   const canvas = document.createElement('canvas');
   canvas.width = CARD_W;
@@ -137,17 +137,10 @@ export async function renderCard(name: string, dept: Department): Promise<Blob> 
   ctx.fillText(EVENT.label.toUpperCase(), cx, 272);
   if ('letterSpacing' in ctx) (ctx as unknown as { letterSpacing: string }).letterSpacing = '0px';
 
-  // Patronus
+  // Crest (carries its own glow, so no extra shadow passes)
   if (img) {
     const size = 780;
-    ctx.save();
-    ctx.shadowColor = `rgba(${rgb},0.75)`;
-    ctx.shadowBlur = 46;
     ctx.drawImage(img, cx - size / 2, 760 - size / 2, size, size);
-    ctx.shadowColor = `rgba(${rgb},0.9)`;
-    ctx.shadowBlur = 10;
-    ctx.drawImage(img, cx - size / 2, 760 - size / 2, size, size);
-    ctx.restore();
   }
 
   // Person name

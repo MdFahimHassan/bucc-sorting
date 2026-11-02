@@ -687,11 +687,9 @@
 .hx-icon {
   position: absolute;
   inset: 0;
-  /* The art is a silver-blue cut-out with real alpha. The department colour is the light it throws:
-     a tight rim plus a wide bloom, so each patronus stays itself and the seven still read apart. */
+  /* The crest art is already in the department colour and has its own glow. No CSS filter on purpose:
+     seven animated drop-shadows are expensive on low-end GPUs. The .hx-aura gradient does the rest. */
   background: var(--img) center / contain no-repeat;
-  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--c) 85%, transparent))
-    drop-shadow(0 0 14px color-mix(in srgb, var(--c) 50%, transparent));
   animation: icon-flicker 2.7s linear infinite;
 }
 .hx:nth-child(odd) .hx-icon {
