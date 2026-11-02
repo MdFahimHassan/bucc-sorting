@@ -258,13 +258,13 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
           // 2d. chosen patronus travels to the centre
           ringOn = false;
           driven = idx;
-          chosen.style.willChange = 'auto'; // let the browser re-rasterise sharply at 2.6x
+          chosen.style.willChange = 'auto'; // let the browser re-rasterise sharply at 3x
           const C = { ...pos[idx]! };
           const apply = () => {
             chosen.style.transform = `translate3d(${C.x.toFixed(1)}px,${C.y.toFixed(1)}px,0) scale(${C.s.toFixed(3)})`;
           };
           const mv = gsap.timeline();
-          mv.to(C, { x: 0, y: 0, s: 2.6, duration: 0.95, ease: 'power3.inOut', onUpdate: apply }, 0)
+          mv.to(C, { x: 0, y: 0, s: 3, duration: 0.95, ease: 'power3.inOut', onUpdate: apply }, 0)
             .to(bodies[idx]!, { scale: 1, duration: 0.5 }, 0)
             .to(haloWrap, { opacity: 1, duration: 0.9, ease: 'power2.out' }, 0.2);
           await timelineDone(mv);

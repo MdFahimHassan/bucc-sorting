@@ -590,8 +590,15 @@
 .halo {
   position: absolute;
   inset: 0;
-  background: radial-gradient(closest-side, var(--glow), transparent 68%);
-  opacity: 0.5;
+  /* Eased falloff so it reads as light, not a disc. */
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--glow) 70%, transparent),
+    color-mix(in srgb, var(--glow) 34%, transparent) 30%,
+    color-mix(in srgb, var(--glow) 12%, transparent) 58%,
+    transparent 100%
+  );
+  opacity: 0.7;
   animation: halo-breathe 3.4s ease-in-out infinite;
 }
 @keyframes halo-breathe {
@@ -617,9 +624,9 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 76px;
-  height: 76px;
-  margin: -38px 0 0 -38px;
+  width: 80px;
+  height: 80px;
+  margin: -40px 0 0 -40px;
   will-change: transform;
 }
 .hx-body {
@@ -630,17 +637,23 @@
   position: absolute;
   inset: -45%;
   border-radius: 50%;
-  background: radial-gradient(closest-side, var(--c), transparent 70%);
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--c) 80%, transparent),
+    color-mix(in srgb, var(--c) 28%, transparent) 45%,
+    transparent 100%
+  );
   opacity: 0.12;
   pointer-events: none;
 }
 .hx-icon {
   position: absolute;
   inset: 0;
-  /* The image is white with baked-in alpha; the mask lets the department colour show through it. */
-  background: radial-gradient(closest-side at 50% 45%, #fff 0%, var(--c) 78%);
-  -webkit-mask: var(--img) center / contain no-repeat;
-  mask: var(--img) center / contain no-repeat;
+  /* The art is a silver-blue cut-out with real alpha. The department colour is the light it throws:
+     a tight rim plus a wide bloom, so each patronus stays itself and the seven still read apart. */
+  background: var(--img) center / contain no-repeat;
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--c) 85%, transparent))
+    drop-shadow(0 0 14px color-mix(in srgb, var(--c) 50%, transparent));
   animation: icon-flicker 2.7s linear infinite;
 }
 .hx:nth-child(odd) .hx-icon {

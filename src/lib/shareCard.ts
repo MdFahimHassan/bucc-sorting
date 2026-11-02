@@ -21,25 +21,11 @@ async function loadFonts(): Promise<void> {
   ]).catch(() => undefined);
 }
 
-/** Loads the white patronus image and tints it with the department colour (white core, coloured edge). */
-function patronusImage(dept: Department): Promise<HTMLCanvasElement> {
+/** Loads the patronus cut-out (silver-blue, with alpha). The department colour is added as glow when it is drawn. */
+function patronusImage(dept: Department): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.onload = () => {
-      const c = document.createElement('canvas');
-      c.width = img.naturalWidth;
-      c.height = img.naturalHeight;
-      const g = c.getContext('2d');
-      if (!g) return reject(new Error('no 2d context'));
-      g.drawImage(img, 0, 0);
-      g.globalCompositeOperation = 'source-in';
-      const grad = g.createRadialGradient(c.width / 2, c.height * 0.45, 0, c.width / 2, c.height * 0.45, c.width * 0.5);
-      grad.addColorStop(0, '#ffffff');
-      grad.addColorStop(0.78, dept.accent);
-      g.fillStyle = grad;
-      g.fillRect(0, 0, c.width, c.height);
-      resolve(c);
-    };
+    img.onload = () => resolve(img);
     img.onerror = () => reject(new Error('patronus image failed'));
     img.src = patronusUrl(dept.id);
   });
@@ -153,8 +139,15 @@ export async function renderCard(name: string, dept: Department): Promise<Blob> 
 
   // Patronus
   if (img) {
-    const size = 700;
+    const size = 780;
+    ctx.save();
+    ctx.shadowColor = `rgba(${rgb},0.75)`;
+    ctx.shadowBlur = 46;
     ctx.drawImage(img, cx - size / 2, 760 - size / 2, size, size);
+    ctx.shadowColor = `rgba(${rgb},0.9)`;
+    ctx.shadowBlur = 10;
+    ctx.drawImage(img, cx - size / 2, 760 - size / 2, size, size);
+    ctx.restore();
   }
 
   // Person name

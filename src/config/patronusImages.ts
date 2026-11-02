@@ -9,7 +9,7 @@ import phoenixImg from '../assets/patronus/phoenix.webp';
 import stagImg from '../assets/patronus/stag.webp';
 import terrierImg from '../assets/patronus/terrier.webp';
 
-/** White patronus image (alpha only); tinted with the department accent at runtime. */
+/** Silver-blue patronus cut-out with real alpha (see scripts/make-patronuses.py). The department accent is added as glow in CSS and on the share card. */
 const IMAGES: Record<string, string> = {
   comms: phoenixImg,
   creative: terrierImg,
