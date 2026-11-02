@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import gsap from 'gsap';
+import { CeremonyBackdrop } from '../components/CeremonyBackdrop';
 import { HatIcon } from '../components/HatIcon';
 import {
   DEPARTMENTS,
@@ -22,6 +23,24 @@ const HAT_LINES = [
   'Plenty of courage, I see…',
   'I know just the place for you…',
 ];
+
+/** Crack lines drawn over each rejected crest (from the first draft of the app). */
+const CRACK_D = 'M52 6L40 30l12 9-14 22 11 8-9 20 M40 30l-14 8 M38 61l-14 6 M50 69l16 10';
+/** The crack starts red-hot and cools to bone white. */
+const HOT = '#ff4d2e';
+const BONE = '#f4efe0';
+
+/** Ticks of the rune circle that sits under the ring of crests. */
+const RUNE_TICKS = Array.from({ length: 36 }, (_, i) => {
+  const a = (i * TAU) / 36;
+  const r2 = i % 3 === 0 ? 103 : 99.5;
+  return {
+    x1: (100 + Math.cos(a) * 96).toFixed(2),
+    y1: (100 + Math.sin(a) * 96).toFixed(2),
+    x2: (100 + Math.cos(a) * r2).toFixed(2),
+    y2: (100 + Math.sin(a) * r2).toFixed(2),
+  };
+});
 
 interface Props {
   /** Resolves with the lookup. Starts at submit so the Hat can think while it runs. */
@@ -57,6 +76,7 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
     const all = <T extends Element>(sel: string) => Array.from(root.querySelectorAll<T>(sel));
 
     const stage = one<HTMLElement>('.stage');
+    // Only the stage (ring + hat) shakes; the text below stays still so it can be read.
     const shakeEl = one<HTMLElement>('.ceremony-shake');
     const hatLine = one<HTMLElement>('.hat-line');
     const hat = one<SVGElement>('.hat-wrap svg');
@@ -67,15 +87,23 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
     const items = all<HTMLElement>('.hx');
     const bodies = all<HTMLElement>('.hx-body');
     const auras = all<HTMLElement>('.hx-aura');
+    const cracks = all<SVGElement>('.hx-crack');
+    const crackPaths = all<SVGPathElement>('.hx-crack path');
+    const wash = one<HTMLElement>('.cm-wash');
+    const vignette = one<HTMLElement>('.cm-vignette');
+    const rune = one<SVGElement>('.rune');
+    const rays = one<HTMLElement>('.fx-rays');
+    const shocks = all<HTMLElement>('.fx-shock');
 
     // ----- ring physics, driven by one ticker callback -----
-    const S = { angle: 0, speed: 0.55, shake: 0 };
+    // r squeezes the ring in while the Hat deliberates, then releases it as the spin stops.
+    const S = { angle: 0, speed: 0.55, shake: 0, r: 1 };
     const pos = items.map(() => ({ x: 0, y: 0, s: 1 }));
     let ringOn = true;
     let driven: number | null = null; // index being driven by the centre move instead of the ring
 
     const place = () => {
-      const r = stage.clientWidth * 0.38;
+      const r = stage.clientWidth * 0.38 * S.r;
       items.forEach((it, i) => {
         if (i === driven) return;
         const a = S.angle + (i * TAU) / items.length;
@@ -92,7 +120,7 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
         place();
       }
       if (S.shake > 0.01) {
-        shakeEl.style.transform = `translate3d(${((Math.random() * 2 - 1) * S.shake).toFixed(2)}px,${((Math.random() * 2 - 1) * S.shake).toFixed(2)}px,0)`;
+        stage.style.transform = `translate3d(${((Math.random() * 2 - 1) * S.shake).toFixed(2)}px,${((Math.random() * 2 - 1) * S.shake).toFixed(2)}px,0)`;
       }
     };
 
@@ -100,6 +128,16 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
       const r = el.getBoundingClientRect();
       return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
     };
+
+    /** The light rays and shockwaves live in a clipped layer (they are bigger than the stage), so they are
+     *  anchored to the stage centre by measuring it. Re-run whenever the layout can have moved. */
+    const placeFx = () => {
+      const rr = root.getBoundingClientRect();
+      const c = center(stage);
+      root.style.setProperty('--fx-x', `${(c.x - rr.left).toFixed(1)}px`);
+      root.style.setProperty('--fx-y', `${(c.y - rr.top).toFixed(1)}px`);
+    };
+    window.addEventListener('resize', placeFx);
 
     const timelineDone = (tl: gsap.core.Timeline) =>
       new Promise<void>((res) => {
@@ -128,25 +166,28 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
                 })
                 .to(o, {
                   n: line.length,
-                  duration: line.length * 0.024,
+                  duration: line.length * 0.042,
                   ease: 'none',
                   onUpdate: () => {
                     hatLine.textContent = line.slice(0, Math.round(o.n));
                   },
                 })
-                .to({}, { duration: 0.22 });
+                .to({}, { duration: 0.85 }); // hold each line long enough to read it
             });
             // rising tension over the same span
             const T = master.duration();
             master
-              .to(S, { speed: 7.2, duration: T, ease: 'power2.in' }, 0)
-              .to(S, { shake: 3.2, duration: T, ease: 'power2.in' }, 0)
+              .to(S, { speed: 3.4, duration: T, ease: 'power2.in' }, 0)
+              .to(S, { shake: 1.5, duration: T, ease: 'power2.in' }, 0)
+              // the ring gathers in during the last second or so, like a held breath
+              .to(S, { r: 0.88, duration: 1.3, ease: 'power2.in' }, Math.max(0, T - 1.3))
+              .to(vignette, { opacity: 0.85, duration: T, ease: 'power2.in' }, 0)
               .fromTo(stageGlow, { opacity: 0.1 }, { opacity: 1, duration: T, ease: 'power2.in' }, 0)
               .to(auras, { opacity: 0.75, duration: T, ease: 'power2.in' }, 0)
               .to(
                 sp,
                 {
-                  v: 3.4,
+                  v: 2.4,
                   duration: T,
                   ease: 'power2.in',
                   onUpdate: () => particles.setSpeed(sp.v),
@@ -176,7 +217,7 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
             ringOn = false;
             gsap.ticker.remove(tick);
             S.shake = 0;
-            shakeEl.style.transform = '';
+            stage.style.transform = '';
             await gsap.to(shakeEl, { opacity: 0, duration: 0.3 });
             if (!cancelled) propsRef.current.onFail(result.status === 'found' ? { status: 'not-found' } : result);
             return;
@@ -194,25 +235,30 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
           if (reduced) {
             hatLine.textContent = '';
             root.classList.add('is-final');
+            placeFx();
             setAnnounce(`${result.person.name}, you have been sorted into ${dept.name}.`);
             return;
           }
 
           // ================= 2. REVEAL =================
-          // 2a. ring winds down, text clears
+          // 2a. the ring releases and spins down slowly, then a beat of stillness
           await new Promise<void>((res) =>
             gsap
               .timeline({ onComplete: res })
-              .to(S, { speed: 0, shake: 0, duration: 0.55, ease: 'power2.out' }, 0)
-              .to(hatLine, { opacity: 0, duration: 0.3 }, 0)
-              .to(auras, { opacity: 0.12, duration: 0.4 }, 0),
+              .to(S, { speed: 0, shake: 0, duration: 1.5, ease: 'power3.out' }, 0)
+              .to(S, { r: 1, duration: 0.9, ease: 'back.out(2.2)' }, 0)
+              .to(hatLine, { opacity: 0, duration: 0.35 }, 0)
+              .to(auras, { opacity: 0.12, duration: 0.6 }, 0)
+              .to(vignette, { opacity: 0.3, duration: 1.2 }, 0)
+              .to({}, { duration: 0.35 }, 1.5),
           );
-          shakeEl.style.transform = '';
+          stage.style.transform = '';
           particles.setSpeed(1.4);
           if (cancelled) return;
 
-          // 2b. flash one by one, decelerating, ending on the chosen patronus
+          // 2b. the light steps from crest to crest, slowing down, and lands on the chosen one
           const K = items.length + idx;
+          const cc = center(chosen);
           const flashTl = gsap.timeline();
           let t = 0;
           for (let k = 0; k <= K; k++) {
@@ -222,40 +268,65 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
               .fromTo(
                 auras[i]!,
                 { opacity: 1 },
-                { opacity: last ? 1 : 0.12, duration: 0.3, ease: 'power2.out' },
+                { opacity: last ? 1 : 0.12, duration: last ? 0.5 : 0.4, ease: 'power2.out' },
                 t,
               )
               .fromTo(
                 bodies[i]!,
                 { scale: last ? 1.4 : 1.2 },
-                { scale: last ? 1.3 : 1, duration: last ? 0.4 : 0.25, ease: 'power2.out' },
+                { scale: last ? 1.3 : 1, duration: last ? 0.5 : 0.3, ease: 'power2.out' },
                 t,
               );
-            t += 0.055 + 0.12 * Math.pow(k / K, 2);
+            if (last) flashTl.call(() => particles.burst(cc.x, cc.y, dept.accent, 12), [], t);
+            t += 0.11 + 0.3 * Math.pow(k / K, 2);
           }
           await timelineDone(flashTl);
           if (cancelled) return;
+          await sleep(250); // let the landing register before the others go
+          if (cancelled) return;
 
-          // 2c. the other six dissolve into silver mist
+          // 2c. the other six crack (red-hot lines draw across them), shudder and fall away
           const crackTl = gsap.timeline();
           let n = 0;
           items.forEach((it, i) => {
             if (i === idx) return;
-            const at = n++ * 0.06;
+            const at = n++ * 0.12;
             const c = center(it);
             crackTl
-              .call(() => particles.burst(c.x, c.y, '#cfe9ff', 6), [], at + 0.1)
+              .set(cracks[i]!, { opacity: 1 }, at)
+              .set(auras[i]!, { '--c': HOT }, at)
+              .fromTo(
+                crackPaths[i]!,
+                { strokeDashoffset: 1, stroke: HOT },
+                { strokeDashoffset: 0, duration: 0.3, ease: 'power2.out' },
+                at,
+              )
+              .to(auras[i]!, { opacity: 0.9, duration: 0.2, ease: 'power2.out' }, at)
+              .to(crackPaths[i]!, { stroke: BONE, duration: 0.4 }, at + 0.3)
+              .to(bodies[i]!, { x: 4, rotation: 6, duration: 0.04, yoyo: true, repeat: 7, ease: 'none' }, at + 0.15)
+              .call(
+                () => {
+                  particles.burst(c.x, c.y, HOT, 5);
+                  particles.burst(c.x, c.y, '#b9b2c8', 3);
+                },
+                [],
+                at + 0.4,
+              )
               .to(
                 bodies[i]!,
-                { opacity: 0, scale: 1.25, y: -22, filter: 'blur(5px)', duration: 0.6, ease: 'power2.out' },
-                at + 0.05,
-              );
+                { opacity: 0, scale: 0.78, y: 22, rotation: i % 2 ? 12 : -12, duration: 0.55, ease: 'power2.in' },
+                at + 0.5,
+              )
+              .to(auras[i]!, { opacity: 0, duration: 0.4 }, at + 0.5);
           });
+          crackTl.fromTo(S, { shake: 1.4 }, { shake: 0, duration: 0.5, ease: 'power2.out' }, 0);
           crackTl.to([hatWrap, stageGlow], { opacity: 0, duration: 0.5 }, 0.2);
           await timelineDone(crackTl);
+          stage.style.transform = '';
           if (cancelled) return;
 
-          // 2d. chosen patronus travels to the centre
+          // 2d. the chosen crest travels to the centre while the stage warms to its colour
+          placeFx();
           ringOn = false;
           driven = idx;
           chosen.style.willChange = 'auto'; // let the browser re-rasterise sharply at 3x
@@ -264,13 +335,15 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
             chosen.style.transform = `translate3d(${C.x.toFixed(1)}px,${C.y.toFixed(1)}px,0) scale(${C.s.toFixed(3)})`;
           };
           const mv = gsap.timeline();
-          mv.to(C, { x: 0, y: 0, s: 3, duration: 0.95, ease: 'power3.inOut', onUpdate: apply }, 0)
-            .to(bodies[idx]!, { scale: 1, duration: 0.5 }, 0)
-            .to(haloWrap, { opacity: 1, duration: 0.9, ease: 'power2.out' }, 0.2);
+          mv.to(C, { x: 0, y: 0, s: 3, duration: 1.3, ease: 'power3.inOut', onUpdate: apply }, 0)
+            .to(bodies[idx]!, { scale: 1, duration: 0.6 }, 0)
+            .to(haloWrap, { opacity: 1, duration: 1.1, ease: 'power2.out' }, 0.2)
+            .to(rune, { color: dept.accent, opacity: 0.85, duration: 1.3, ease: 'power2.inOut' }, 0)
+            .to(wash, { opacity: 0.4, duration: 1.3, ease: 'power2.inOut' }, 0);
           await timelineDone(mv);
           if (cancelled) return;
 
-          // 2e. burst + flash in the department colour
+          // 2e. burst, shockwaves and light rays in the department colour; the crest starts to shine
           const c = center(chosen);
           particles.burst(c.x, c.y, dept.accent, 44);
           playChime();
@@ -280,6 +353,15 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
             .timeline()
             .fromTo(flash, { opacity: 0 }, { opacity: 0.38, duration: 0.08 })
             .to(flash, { opacity: 0, duration: 0.35 });
+          gsap.fromTo(
+            shocks,
+            { scale: 0.12, opacity: 0.9 },
+            { scale: 1, opacity: 0, duration: 1.5, stagger: 0.2, ease: 'power2.out' },
+          );
+          gsap.to(rays, { opacity: 0.6, duration: 1.8, ease: 'power2.out' });
+          gsap.to(wash, { opacity: 0.75, duration: 1.4, ease: 'power2.out' });
+          gsap.to(vignette, { opacity: 0.45, duration: 1.2 });
+          chosen.classList.add('is-shining');
           gsap.delayedCall(1.4, () => particles.setSpeed(1));
 
           // 2f. name letter by letter, then flavour, greeting and card details
@@ -299,7 +381,7 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
           console.error(err);
           if (cancelled) return;
           gsap.ticker.remove(tick);
-          shakeEl.style.transform = '';
+          stage.style.transform = '';
           if (!found) {
             try {
               const r = await lookup;
@@ -322,6 +404,7 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
           root.style.setProperty('--glow', d.accent);
           items[DEPARTMENTS.findIndex((x) => x.id === d.id)]?.classList.add('is-chosen');
           root.classList.add('is-final');
+          placeFx();
           setAnnounce(`${found.person.name}, you have been sorted into ${d.name}.`);
         }
       })();
@@ -329,6 +412,7 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
 
     return () => {
       cancelled = true;
+      window.removeEventListener('resize', placeFx);
       gsap.ticker.remove(tick);
       ctx.revert();
       particles.setSpeed(1);
@@ -370,10 +454,31 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
 
   return (
     <div ref={rootRef} className="screen ceremony" data-screen="ceremony">
+      <CeremonyBackdrop />
+      {/* Light rays and shockwaves: bigger than the stage, so they live in a clipped layer of their own. */}
+      <div className="cm-fx" aria-hidden="true">
+        <div className="fx-anchor">
+          <div className="fx-rays" />
+          <div className="fx-shock" />
+          <div className="fx-shock" />
+        </div>
+      </div>
       <div className="ceremony-shake">
         <p className="greet">{reveal?.name}</p>
 
         <div className="stage" aria-hidden="true">
+          <svg className="rune" viewBox="0 0 200 200" fill="none" stroke="currentColor">
+            <g className="rune-a">
+              <circle cx="100" cy="100" r="96" strokeWidth="0.8" />
+              {RUNE_TICKS.map((tk, i) => (
+                <line key={i} x1={tk.x1} y1={tk.y1} x2={tk.x2} y2={tk.y2} strokeWidth="0.8" />
+              ))}
+            </g>
+            <g className="rune-b">
+              <circle cx="100" cy="100" r="84" strokeWidth="0.6" strokeDasharray="1.5 5" />
+              <circle cx="100" cy="100" r="70" strokeWidth="0.8" strokeDasharray="12 4 2 4" />
+            </g>
+          </svg>
           <div className="stage-glow" />
           <div className="halo-wrap">
             <div className="halo" />
@@ -382,10 +487,26 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
             <HatIcon className="hat" />
           </div>
           {DEPARTMENTS.map((d) => (
-            <div key={d.id} className="hx" style={{ ['--c' as string]: d.accent }}>
+            <div
+              key={d.id}
+              className="hx"
+              style={{ ['--c' as string]: d.accent, ['--img' as string]: `url(${crestUrl(d.id)})` }}
+            >
               <div className="hx-body">
                 <span className="hx-aura" />
-                <span className="hx-icon" style={{ ['--img' as string]: `url(${crestUrl(d.id)})` }} />
+                <span className="hx-icon" />
+                <span className="hx-shine" />
+                <svg
+                  className="hx-crack"
+                  viewBox="0 0 100 100"
+                  fill="none"
+                  stroke={BONE}
+                  strokeWidth="3.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d={CRACK_D} pathLength={1} />
+                </svg>
               </div>
             </div>
           ))}
