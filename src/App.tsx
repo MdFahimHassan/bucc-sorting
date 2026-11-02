@@ -1,22 +1,27 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ParticleLayer } from './components/ParticleLayer';
-import { getDepartment } from './config/departments';
 import { loadData, lookupParticipant, type LookupResult } from './lib/lookup';
 import { useWandTrail } from './lib/useWandTrail';
+import { CeremonyScreen } from './screens/CeremonyScreen';
 import { IdEntryScreen } from './screens/IdEntryScreen';
 import { IntroScreen } from './screens/IntroScreen';
+import { NotFoundScreen } from './screens/NotFoundScreen';
 
-type Phase = 'intro' | 'id' | 'result';
+type Phase = 'intro' | 'id' | 'ceremony' | 'notfound';
+type Found = Extract<LookupResult, { status: 'found' }>;
 
 const WRONG_TRIES_BEFORE_PAUSE = 3;
 const PAUSE_MS = 4000;
 
 export function App() {
   const [phase, setPhase] = useState<Phase>('intro');
-  const [result, setResult] = useState<LookupResult | null>(null);
+  const [lookup, setLookup] = useState<Promise<LookupResult> | null>(null);
+  const [ceremonyKey, setCeremonyKey] = useState(0);
+  const [failure, setFailure] = useState<LookupResult | null>(null);
   const [lastId, setLastId] = useState('');
-  const [wrongTries, setWrongTries] = useState(0);
   const [lockedUntil, setLockedUntil] = useState<number | null>(null);
+  const wrongTries = useRef(0);
+  const lastFound = useRef<Found | null>(null);
 
   useWandTrail();
 
@@ -25,23 +30,42 @@ export function App() {
     void loadData().catch(() => undefined);
   }, []);
 
-  const handleSubmit = useCallback(
-    async (rawId: string) => {
-      setLastId(rawId);
-      const r = await lookupParticipant(rawId);
-      if (r.status === 'not-found') {
-        const n = wrongTries + 1;
-        setWrongTries(n);
-        if (n >= WRONG_TRIES_BEFORE_PAUSE) setLockedUntil(Date.now() + PAUSE_MS);
-      } else if (r.status === 'found') {
-        setWrongTries(0);
-        setLockedUntil(null);
+  const handleSubmit = useCallback((rawId: string) => {
+    setLastId(rawId);
+    setLookup(lookupParticipant(rawId));
+    setCeremonyKey((k) => k + 1);
+    setPhase('ceremony');
+  }, []);
+
+  const handleFound = useCallback((r: Found) => {
+    lastFound.current = r;
+    wrongTries.current = 0;
+    setLockedUntil(null);
+  }, []);
+
+  const handleFail = useCallback((r: LookupResult) => {
+    if (r.status === 'not-found') {
+      wrongTries.current += 1;
+      if (wrongTries.current >= WRONG_TRIES_BEFORE_PAUSE) {
+        setLockedUntil(Date.now() + PAUSE_MS);
+        wrongTries.current = 0;
       }
-      setResult(r);
-      setPhase('result');
-    },
-    [wrongTries],
-  );
+    }
+    setFailure(r);
+    setPhase('notfound');
+  }, []);
+
+  /** Replaying skips nothing: the full ceremony runs again on the already-found result. */
+  const handleReplay = useCallback(() => {
+    if (!lastFound.current) return;
+    setLookup(Promise.resolve(lastFound.current));
+    setCeremonyKey((k) => k + 1);
+  }, []);
+
+  const handleAnotherId = useCallback(() => {
+    setLastId('');
+    setPhase('id');
+  }, []);
 
   return (
     <>
@@ -50,27 +74,18 @@ export function App() {
       {phase === 'id' && (
         <IdEntryScreen onSubmit={handleSubmit} lockedUntil={lockedUntil} initialValue={lastId} />
       )}
-      {phase === 'result' && <TempResult result={result} onBack={() => setPhase('id')} />}
+      {phase === 'ceremony' && lookup && (
+        <CeremonyScreen
+          key={ceremonyKey}
+          lookup={lookup}
+          onFound={handleFound}
+          onFail={handleFail}
+          onReplay={handleReplay}
+          onAnotherId={handleAnotherId}
+        />
+      )}
+      {phase === 'notfound' && <NotFoundScreen failure={failure} onRetry={() => setPhase('id')} />}
       <div className="film-layer" aria-hidden="true" />
     </>
-  );
-}
-
-/** Step 3 placeholder. Replaced by the sorting, reveal and card screens in Step 4. */
-function TempResult({ result, onBack }: { result: LookupResult | null; onBack: () => void }) {
-  const dept = result?.status === 'found' ? getDepartment(result.person.dept) : undefined;
-  return (
-    <div className="screen screen-in" style={{ display: 'grid', placeItems: 'center', padding: 24 }}>
-      <div style={{ textAlign: 'center', maxWidth: 420 }}>
-        <p aria-live="polite">
-          {result?.status === 'found'
-            ? `${result.person.name}: ${dept?.name ?? result.person.dept}`
-            : 'The Sorting Hat cannot find you. Please see a Prefect (volunteer).'}
-        </p>
-        <button type="button" className="btn-gold press" onClick={onBack} style={{ marginTop: 24 }}>
-          Back
-        </button>
-      </div>
-    </div>
   );
 }
