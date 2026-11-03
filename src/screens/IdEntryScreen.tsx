@@ -2,8 +2,11 @@ import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { STUDENT_ID_EXAMPLE } from '../config/departments';
 import { Footprints } from '../components/Footprints';
 import { InkText } from '../components/InkText';
+import { Owl } from '../components/Owl';
+import { WaxStamp } from '../components/WaxStamp';
 import { cryptoSupported } from '../lib/lookup';
 import { particles } from '../lib/particles';
+import { useScrollIntro } from '../lib/useScrollIntro';
 import { validateIdInput } from '../lib/validate';
 
 interface Props {
@@ -13,22 +16,57 @@ interface Props {
   initialValue?: string;
 }
 
-/** Marauder's Map style: parchment, ink-in oath, footprints, one input. */
+const OATH = 'Whisper thy number, and the castle shall answer.';
+
+/**
+ * Marauder's Map style: an owl delivers a scroll, the red string comes off, it unrolls into
+ * parchment with an ink-in line, one input, and a wax seal you hold to submit.
+ */
 export function IdEntryScreen({ onSubmit, lockedUntil, initialValue = '' }: Props) {
   const inputId = useId();
   const helpId = useId();
   const errId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
+  const valueRef = useRef(initialValue);
   const [value, setValue] = useState(initialValue);
   const [error, setError] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const supported = cryptoSupported();
 
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLElement>(null);
+  const owlRef = useRef<HTMLDivElement>(null);
+  const carriedRef = useRef<SVGGElement>(null);
+  const dropRef = useRef<HTMLDivElement>(null);
+  const ribbonRef = useRef<HTMLDivElement>(null);
+  const topRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  const { stage, played, skip } = useScrollIntro({
+    wrap: wrapRef,
+    card: cardRef,
+    owl: owlRef,
+    carried: carriedRef,
+    drop: dropRef,
+    ribbon: ribbonRef,
+    top: topRef,
+    bottom: bottomRef,
+  });
+  const ready = stage === 'ready';
+  const hold = stage === 'owl' || stage === 'drop' || stage === 'untie';
+  // The oath inks in once the sheet starts opening; a touch later so the sheet leads.
+  const oathDelay = useRef(played ? 700 : 250).current;
+
   useEffect(() => {
     particles.setEmbers(0.3);
-    const t = setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 650);
-    return () => clearTimeout(t);
   }, []);
+
+  // Focus only when the form is actually usable (after the unroll, not during it).
+  useEffect(() => {
+    if (!ready) return;
+    const t = setTimeout(() => inputRef.current?.focus({ preventScroll: true }), played ? 60 : 650);
+    return () => clearTimeout(t);
+  }, [ready, played]);
 
   useEffect(() => {
     if (!lockedUntil) return;
@@ -40,83 +78,134 @@ export function IdEntryScreen({ onSubmit, lockedUntil, initialValue = '' }: Prop
   const wait = lockedUntil ? Math.max(0, Math.ceil((lockedUntil - now) / 1000)) : 0;
   const locked = wait > 0;
 
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    if (locked) return;
-    const problem = validateIdInput(value);
+  /** Shows the problem (and returns false) when the ID is not usable yet. */
+  const check = (): boolean => {
+    if (locked) return false;
+    const problem = validateIdInput(valueRef.current);
     if (problem) {
       setError(problem);
       inputRef.current?.focus();
-      return;
+      return false;
     }
     setError(null);
-    onSubmit(value);
+    return true;
+  };
+
+  // Enter / the keyboard's Go key submits straight away; the seal is the pointer path.
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    if (check()) onSubmit(valueRef.current);
   };
 
   return (
-    <div className="screen map-screen screen-in" data-screen="id">
-      <section className="parchment" aria-labelledby={`${inputId}-title`}>
-        <div className="map-content">
-          <InkText
-            text="I solemnly swear that I am up to no good"
-            className="oath"
-          />
-          <h1 id={`${inputId}-title`} className="sr-only">
-            Find your department
-          </h1>
-
-          {!supported ? (
-            <div role="alert" className="map-note">
-              <p>
-                This browser cannot run the Sorting Hat&rsquo;s magic because secure web crypto is
-                missing.
-              </p>
-              <p>
-                Please open this page in Chrome or Safari, and check that the address starts with
-                https.
-              </p>
-            </div>
-          ) : (
-            <form onSubmit={submit} noValidate className="map-form">
-              <label htmlFor={inputId} className="map-label">
-                Student ID
-              </label>
-              <input
-                ref={inputRef}
-                id={inputId}
-                className="map-input"
-                type="text"
-                inputMode="numeric"
-                enterKeyHint="go"
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="off"
-                spellCheck={false}
-                maxLength={20}
-                placeholder={STUDENT_ID_EXAMPLE}
-                value={value}
-                aria-invalid={error ? true : undefined}
-                aria-describedby={error ? `${helpId} ${errId}` : helpId}
-                onChange={(e) => {
-                  setValue(e.target.value);
-                  if (error) setError(null);
-                }}
-              />
-              <p id={helpId} className="map-help">
-                8 digits, like {STUDENT_ID_EXAMPLE}. Spaces and dashes are fine.
-              </p>
-              <p id={errId} className="map-error" role="alert" aria-live="assertive">
-                {error}
-              </p>
-
-              <button type="submit" className="btn-ink press" disabled={locked} aria-disabled={locked}>
-                {locked ? `The Hat needs a moment (${wait})` : 'Reveal my department'}
-              </button>
-            </form>
-          )}
+    <div
+      className="screen map-screen screen-in"
+      data-screen="id"
+      data-ready={ready ? '' : undefined}
+      onPointerDown={ready ? undefined : skip}
+      onKeyDown={ready ? undefined : skip}
+    >
+      <div className="owl-layer" aria-hidden="true">
+        <div ref={owlRef} className="owl-fly">
+          <div className="owl-bob">
+            <Owl carriedRef={carriedRef} />
+          </div>
         </div>
-        <Footprints />
-      </section>
+      </div>
+
+      <div
+        ref={wrapRef}
+        className="scroll-wrap"
+        data-stage={stage}
+        data-hold={hold ? '' : undefined}
+      >
+        <div ref={topRef} className="roll roll-edge roll-top" aria-hidden="true" />
+
+        <section ref={cardRef} className="parchment" aria-labelledby={`${inputId}-title`}>
+          <div className="map-content" inert={!ready}>
+            <InkText text={OATH} className="oath" startDelayMs={oathDelay} />
+            <h1 id={`${inputId}-title`} className="sr-only">
+              Find your department
+            </h1>
+
+            {!supported ? (
+              <div role="alert" className="map-note">
+                <p>
+                  This browser cannot run the Sorting Hat&rsquo;s magic because secure web crypto is
+                  missing.
+                </p>
+                <p>
+                  Please open this page in Chrome or Safari, and check that the address starts with
+                  https.
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={submit} noValidate className="map-form">
+                <label htmlFor={inputId} className="map-label">
+                  Student ID
+                </label>
+                <input
+                  ref={inputRef}
+                  id={inputId}
+                  className="map-input"
+                  type="text"
+                  inputMode="numeric"
+                  enterKeyHint="go"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck={false}
+                  maxLength={20}
+                  placeholder={STUDENT_ID_EXAMPLE}
+                  value={value}
+                  aria-invalid={error ? true : undefined}
+                  aria-describedby={error ? `${helpId} ${errId}` : helpId}
+                  onChange={(e) => {
+                    valueRef.current = e.target.value;
+                    setValue(e.target.value);
+                    if (error) setError(null);
+                  }}
+                />
+                <p id={helpId} className="map-help">
+                  8 digits, like {STUDENT_ID_EXAMPLE}. Spaces and dashes are fine.
+                </p>
+                <p id={errId} className="map-error" role="alert" aria-live="assertive">
+                  {error}
+                </p>
+
+                <WaxStamp
+                  label={locked ? `The Hat needs a moment (${wait})` : 'Hold to seal your fate'}
+                  disabled={locked}
+                  onBeforeHold={check}
+                  onComplete={() => onSubmit(valueRef.current)}
+                />
+              </form>
+            )}
+          </div>
+          <Footprints />
+        </section>
+
+        <div ref={bottomRef} className="roll roll-edge roll-bottom" aria-hidden="true" />
+
+        {/* The dropped scroll: rolled up, tied with a red string, until it is untied. */}
+        <div ref={dropRef} className="roll roll-drop" aria-hidden="true">
+          <div ref={ribbonRef} className="ribbon">
+            <svg viewBox="0 0 64 64" focusable="false">
+              <path d="M30 34 Q24 46 17 58" stroke="#a81f17" strokeWidth="4.2" strokeLinecap="round" fill="none" />
+              <path d="M34 34 Q40 46 47 58" stroke="#a81f17" strokeWidth="4.2" strokeLinecap="round" fill="none" />
+              <rect x="26" y="16" width="12" height="32" rx="2" fill="#b3261e" />
+              <rect x="26" y="16" width="3" height="32" rx="1.5" fill="#7d150f" opacity="0.55" />
+              <ellipse cx="22" cy="28" rx="10" ry="6" transform="rotate(-24 22 28)" fill="#c62f25" stroke="#7d150f" strokeWidth="1" />
+              <ellipse cx="42" cy="28" rx="10" ry="6" transform="rotate(24 42 28)" fill="#c62f25" stroke="#7d150f" strokeWidth="1" />
+              <circle cx="32" cy="30" r="4.4" fill="#d9382d" stroke="#7d150f" strokeWidth="1" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <p className="intro-skip" aria-hidden="true">
+        Tap to skip
+      </p>
     </div>
   );
 }
