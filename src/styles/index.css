@@ -318,7 +318,7 @@
   padding-top: 0.75em;
   font-family: var(--font-title);
   font-weight: 400;
-  font-size: clamp(2.8rem, 14vw, 6.5rem);
+  font-size: clamp(2.4rem, 11vw, 6.5rem);
   /* tall enough that the T's tail clears the second line */
   line-height: 1.12;
   letter-spacing: 0.03em;
@@ -449,7 +449,18 @@
   flex-direction: column;
   justify-content: center;
   overflow: hidden;
-  border-radius: 6px;
+  /* Torn, uneven side edges: the left and right 30px strips are alpha masks of a fractal tear
+     (scripts/make-scroll.py), stretched down the sheet; the middle is solid. The top and bottom
+     are hidden under the rolls. */
+  border-radius: 0;
+  -webkit-mask-image: url('../assets/scroll/tear-l.png'), url('../assets/scroll/tear-r.png'), linear-gradient(#000, #000);
+  mask-image: url('../assets/scroll/tear-l.png'), url('../assets/scroll/tear-r.png'), linear-gradient(#000, #000);
+  -webkit-mask-size: 30px 100%, 30px 100%, calc(100% - 56px) 100%;
+  mask-size: 30px 100%, 30px 100%, calc(100% - 56px) 100%;
+  -webkit-mask-position: left top, right top, center top;
+  mask-position: left top, right top, center top;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
   color: var(--ink);
   /* Burnt edges, folds, paper grain, base tone. One static paint. */
   background:
@@ -463,8 +474,18 @@
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='.045' numOctaves='4' seed='7'/><feColorMatrix values='0 0 0 0 .42  0 0 0 0 .27  0 0 0 0 .1  0 0 0 .9 -.28'/></filter><rect width='100%' height='100%' filter='url(%23p)'/></svg>"),
     linear-gradient(160deg, var(--parchment-light), var(--parchment) 55%, var(--parchment-dark));
   box-shadow:
-    inset 0 0 70px rgb(80 45 10 / 0.55),
-    0 30px 60px -24px #000;
+    inset 0 0 70px rgb(80 45 10 / 0.55);
+}
+/* The torn edges' pale fibres and damp-stained band, painted over the paper. */
+.parchment::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background:
+    url('../assets/scroll/tear-rim-l.webp') left top / 30px 100% no-repeat,
+    url('../assets/scroll/tear-rim-r.webp') right top / 30px 100% no-repeat;
 }
 .parchment :focus-visible {
   outline-color: var(--ink);
@@ -560,8 +581,13 @@
   width: 100%;
   max-width: 30rem;
 }
+.scroll-wrap {
+  filter: drop-shadow(0 26px 22px rgb(0 0 0 / 0.5));
+}
+/* The sheet is narrower than the rolls, so their curled ends stick out at the sides. */
 .scroll-wrap > .parchment {
-  width: 100%;
+  width: calc(100% - 28px);
+  margin-inline: auto;
   transform-origin: 50% 50%;
 }
 
@@ -608,53 +634,59 @@
   display: none;
 }
 
-/* A roll of parchment: used for the dropped scroll and for the top and bottom edges. */
+/* A roll of paper: the dropped scroll, and the open scroll's top and bottom. Textures are rendered
+   by scripts/make-scroll.py: a shaded paper cylinder, with the spiral of rolled-up layers showing at
+   each end. The caps are a little taller than the body, as the outer layers sit proud of it. */
 .roll {
   position: absolute;
   z-index: 3;
   height: 22px;
-  border-radius: 11px;
+  border-radius: 3px;
   pointer-events: none;
-  background:
-    linear-gradient(90deg, rgb(60 38 14 / 0.5), transparent 5%, transparent 95%, rgb(60 38 14 / 0.5)),
-    linear-gradient(180deg, #8a6a3a 0%, #cfb27b 18%, #f1e3bb 46%, #d2b57d 72%, #8b6a38 100%);
-  box-shadow:
-    0 6px 10px -4px rgb(0 0 0 / 0.55),
-    inset 0 0 0 1px rgb(70 42 14 / 0.35);
+  background: url('../assets/scroll/roll-body.webp') 0 0 / 100% 100% no-repeat;
+  box-shadow: 0 5px 8px -4px rgb(40 22 6 / 0.55);
 }
 .roll::before,
 .roll::after {
   content: '';
   position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 13px;
-  border-radius: 50%;
-  background: radial-gradient(
-    ellipse at center,
-    #ead7a6 0 24%,
-    #a98550 26% 32%,
-    #e2cd98 34% 50%,
-    #8d6a3a 52% 60%,
-    #d8bf88 62%
-  );
-  box-shadow: inset 0 0 0 1px rgb(70 42 14 / 0.4);
+  top: -1px;
+  bottom: -1px;
+  width: 14px;
+  background: no-repeat 0 0 / 100% 100%;
 }
 .roll::before {
-  left: -3px;
+  left: -4px;
+  background-image: url('../assets/scroll/roll-cap-l.webp');
 }
 .roll::after {
-  right: -3px;
+  right: -4px;
+  background-image: url('../assets/scroll/roll-cap-r.webp');
 }
+/* The open scroll's top and bottom rolls: wider than the sheet, so the spiral ends stick out. */
 .roll-edge {
+  left: 0;
+  right: 0;
+  height: 44px;
+}
+.roll-edge::before,
+.roll-edge::after {
+  top: -2px;
+  bottom: -2px;
+  width: 28px;
+}
+.roll-edge::before {
   left: -8px;
+}
+.roll-edge::after {
   right: -8px;
 }
 .roll-top {
-  top: -11px;
+  top: -22px;
 }
 .roll-bottom {
-  bottom: -11px;
+  bottom: -22px;
+  box-shadow: 0 -2px 6px -3px rgb(40 22 6 / 0.5);
 }
 .roll-drop {
   top: 50%;
@@ -793,21 +825,73 @@
   stroke-dashoffset: 0;
   transition: none;
 }
-.stamp-wax {
+/* The slam is one timeline per layer, all sharing --slam (set from WaxStamp.tsx) and the same
+   impact moment (37%): the die falls and lands, the blob is swapped for the pressed seal under
+   it, a shock ring goes out, then the die lifts away and the stamped B is left behind. */
+.stamp-blob,
+.stamp-seal,
+.stamp-die {
   transform-origin: 60px 60px;
-  transition: transform 200ms var(--ease-out);
 }
-.stamp[data-phase='holding'] .stamp-wax {
-  transform: scale(0.92);
+.stamp-blob {
+  transition: transform 220ms var(--ease-out);
 }
-.stamp[data-phase='done'] .stamp-wax {
-  animation: stamp-thump 380ms var(--ease-out) both;
+.stamp[data-phase='holding'] .stamp-blob {
+  /* The blob does nothing clever while you hold: it just sits there, warming. */
+  transform: scale(0.97);
 }
-@keyframes stamp-thump {
-  0% { transform: scale(0.92); }
-  35% { transform: scale(1.16); }
-  70% { transform: scale(0.97); }
-  100% { transform: scale(1); }
+.stamp-seal,
+.stamp-die {
+  opacity: 0;
+}
+.stamp[data-phase='done'] .stamp-blob {
+  animation: blob-out var(--slam, 1300ms) linear both;
+}
+.stamp[data-phase='done'] .stamp-seal {
+  animation: seal-in var(--slam, 1300ms) linear both;
+}
+.stamp[data-phase='done'] .stamp-die {
+  animation: die-slam var(--slam, 1300ms) linear both;
+}
+.stamp[data-phase='done'] svg {
+  animation: stamp-jolt var(--slam, 1300ms) linear both;
+}
+@keyframes blob-out {
+  0%, 36.9% { opacity: 1; transform: scale(0.97); }
+  37%, 100% { opacity: 0; transform: scale(1.25); }
+}
+@keyframes seal-in {
+  0%, 36.9% { opacity: 0; transform: scale(0.8); animation-timing-function: ease-out; }
+  37% { opacity: 1; transform: scale(1.1); animation-timing-function: ease-out; }
+  52% { opacity: 1; transform: scale(0.985); }
+  66%, 100% { opacity: 1; transform: scale(1); }
+}
+@keyframes die-slam {
+  0% { opacity: 0; transform: translateY(-10px) scale(2.3); animation-timing-function: cubic-bezier(0.55, 0, 0.9, 0.5); }
+  12% { opacity: 1; }
+  37% { opacity: 1; transform: translateY(0) scale(1); animation-timing-function: ease-out; }
+  46% { opacity: 1; transform: translateY(1px) scale(0.965); animation-timing-function: ease-in; }
+  54% { opacity: 1; transform: translateY(0) scale(1); animation-timing-function: cubic-bezier(0.3, 0.1, 0.5, 1); }
+  100% { opacity: 0; transform: translateY(-6px) scale(1.55); }
+}
+/* The die's shadow is long and soft while it is high, and shrinks to nothing as it lands. */
+.stamp-die-shadow {
+  transform-origin: 60px 60px;
+  animation: none;
+}
+.stamp[data-phase='done'] .stamp-die-shadow {
+  animation: die-shadow var(--slam, 1300ms) linear both;
+}
+@keyframes die-shadow {
+  0% { opacity: 0.5; transform: translate(14px, 22px) scale(1.05); }
+  37% { opacity: 0.9; transform: translate(0, 0) scale(0.9); }
+  100% { opacity: 0; transform: translate(10px, 16px) scale(1.2); }
+}
+@keyframes stamp-jolt {
+  0%, 36.9% { transform: none; }
+  40% { transform: translateY(2.5px); }
+  48% { transform: translateY(-1px); }
+  56%, 100% { transform: none; }
 }
 .stamp-splash {
   fill: none;
@@ -817,7 +901,12 @@
   transform-origin: 60px 60px;
 }
 .stamp[data-phase='done'] .stamp-splash {
-  animation: stamp-splash 520ms var(--ease-out) both;
+  animation: stamp-splash calc(var(--slam, 1300ms) * 0.7) var(--ease-out) calc(var(--slam, 1300ms) * 0.37) both;
+}
+.stamp[data-phase='done'] .stamp-splash-2 {
+  animation-duration: calc(var(--slam, 1300ms) * 0.55);
+  animation-delay: calc(var(--slam, 1300ms) * 0.41);
+  stroke-width: 1.5;
 }
 @keyframes stamp-splash {
   0% { opacity: 0.6; transform: scale(0.9); }
@@ -887,6 +976,20 @@
   .wand-halo,
   .wand-core {
     animation: none;
+  }
+  .stamp[data-phase='done'] svg,
+  .stamp[data-phase='done'] .stamp-die,
+  .stamp[data-phase='done'] .stamp-die-shadow,
+  .stamp[data-phase='done'] .stamp-splash {
+    animation: none;
+  }
+  .stamp[data-phase='done'] .stamp-blob {
+    animation: none;
+    opacity: 0;
+  }
+  .stamp[data-phase='done'] .stamp-seal {
+    animation: none;
+    opacity: 1;
   }
 }
 

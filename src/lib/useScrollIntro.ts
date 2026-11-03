@@ -194,12 +194,20 @@ export function useScrollIntro(parts: IntroParts): {
       const ease = 'cubic-bezier(0.22, 0.8, 0.3, 1)';
       const timing = { duration: 760, delay: 140, easing: ease };
       const half = (cardH / 2) * 0.98;
-      const widen: Keyframe[] = [
-        { left: '29%', right: '29%' },
-        { left: '-8px', right: '-8px' },
+      // The two tubes widen to the full width of the scroll, thicken a little, and their spiral ends
+      // grow to size. They stay as the open scroll's top and bottom rolls.
+      const widenTo = (side: 'top' | 'bottom'): Keyframe[] => [
+        { left: '29%', right: '29%', height: '22px', [side]: '-11px' },
+        { left: '0px', right: '0px', height: '44px', [side]: '-22px' },
       ];
-      void play(top, widen, { duration: 300, easing: 'ease-out' });
-      void play(bottom, widen, { duration: 300, easing: 'ease-out' });
+      const widenTiming = { duration: 320, easing: 'ease-out' };
+      void play(top, widenTo('top'), widenTiming);
+      void play(bottom, widenTo('bottom'), widenTiming);
+      for (const el of [top, bottom]) {
+        for (const pseudoElement of ['::before', '::after']) {
+          void play(el, [{ width: '14px' }, { width: '28px' }], { ...widenTiming, pseudoElement });
+        }
+      }
       void play(top, [{ transform: `translateY(${half}px)` }, { transform: 'translateY(0px)' }], timing);
       void play(bottom, [{ transform: `translateY(${-half}px)` }, { transform: 'translateY(0px)' }], timing);
       // Opacity holds at 0 until the rolls have widened, so no thin full-width sliver shows first.

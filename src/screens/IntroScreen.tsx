@@ -8,7 +8,7 @@ import { WritingWand } from '../components/WritingWand';
 import { particles } from '../lib/particles';
 import { prefersReducedMotion } from '../lib/motion';
 
-const LINES = ['The Sorting', 'Ceremony'] as const;
+const LINES = ['The', 'Sorting Ceremony'] as const;
 
 /** Resolves when the title font is ready (or after a short timeout, so we never hang). */
 function titleFontReady(): Promise<void> {
@@ -163,9 +163,9 @@ export function IntroScreen({ onEnter }: { onEnter: () => void }) {
         // Wand appears and drifts onto the first line.
         tl.to(wandEl, { opacity: 1, duration: 0.2, ease: 'power2.out' }, 0);
         tl.to(tip, { x: strokeX(g1, 0), y: g1.y, duration: 0.25, ease: 'power2.out', onUpdate: place }, 0);
-        write(l1, g1, 1.5, 1.1, 0.25);
-        swoosh({ x: strokeX(g1, 1), y: g1.y }, { x: strokeX(g2, 0), y: g2.y }, 0.35, 1.35);
-        write(l2, g2, 1, 0.9, 1.7);
+        write(l1, g1, 1, 0.6, 0.25);
+        swoosh({ x: strokeX(g1, 1), y: g1.y }, { x: strokeX(g2, 0), y: g2.y }, 0.35, 0.85);
+        write(l2, g2, 2, 1.25, 1.2);
 
         // Tap the T, the hat lands.
         tl.to(tip, { x: tTop.x, y: tTop.y - 6, duration: 0.35, ease: 'power2.inOut', onUpdate: place }, 2.65);

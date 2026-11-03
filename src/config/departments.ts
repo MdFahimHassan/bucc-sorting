@@ -27,7 +27,7 @@ export const DEPARTMENTS: readonly Department[] = [
     name: 'Communication and Marketing',
     patronus: 'Phoenix',
     bearer: 'Dumbledore’s',
-    accent: '#ff6b4a',
+    accent: '#f7707a',
     flavor: 'Rising, renewing, and always carrying the message. Wherever the club needs a voice, you arrive on wings.',
     description: [
       'You carry BUCC’s story to the world: campaigns, outreach and partnerships.',
@@ -40,7 +40,7 @@ export const DEPARTMENTS: readonly Department[] = [
     name: 'Creative',
     patronus: 'Jack Russell Terrier',
     bearer: 'Ron’s',
-    accent: '#e0a93b',
+    accent: '#6f8cf7',
     flavor: 'Loyal, funny and braver than you let on. Your ideas come running before anyone has called them.',
     description: [
       'You give BUCC its look: posters, video, motion and brand identity.',
@@ -53,7 +53,7 @@ export const DEPARTMENTS: readonly Department[] = [
     name: 'Event Management',
     patronus: 'Hare',
     bearer: 'Luna’s',
-    accent: '#8fd16a',
+    accent: '#74dc7e',
     flavor: 'Light on your feet and tuned to what others miss. You turn an ordinary evening into something people believe in.',
     description: [
       'You plan and run BUCC’s workshops, contests and orientations.',
@@ -66,7 +66,7 @@ export const DEPARTMENTS: readonly Department[] = [
     name: 'Finance',
     patronus: 'Horse',
     bearer: 'Ginny’s',
-    accent: '#f08a4b',
+    accent: '#a96ff7',
     flavor: 'Steady stride, sure footing. You carry the club’s weight without ever breaking pace.',
     description: [
       'You manage BUCC’s budgets, sponsorships and spending.',
@@ -79,7 +79,7 @@ export const DEPARTMENTS: readonly Department[] = [
     name: 'Human Resources',
     patronus: 'Otter',
     bearer: 'Hermione’s',
-    accent: '#f08aa8',
+    accent: '#f2e063',
     flavor: 'Clever, warm and fiercely loyal. You make sure nobody in the room is left behind.',
     description: [
       'You recruit, onboard and look after BUCC’s members.',
@@ -92,7 +92,7 @@ export const DEPARTMENTS: readonly Department[] = [
     name: 'Press Release and Publication',
     patronus: 'Stag',
     bearer: 'Harry’s',
-    accent: '#5fd0c4',
+    accent: '#5fb4f7',
     flavor: 'Bold, steady and impossible to miss. Where you walk, the whole hall looks up.',
     description: [
       'You write BUCC’s announcements, articles, newsletters and reports.',
@@ -105,7 +105,7 @@ export const DEPARTMENTS: readonly Department[] = [
     name: 'Research and Development',
     patronus: 'Doe',
     bearer: 'Snape’s',
-    accent: '#ffd84d',
+    accent: '#4fe3c6',
     flavor: 'Quiet, devoted and always a step ahead. You lead others to what they did not know they needed.',
     description: [
       'You explore new tech, run projects and build tools for the club.',
@@ -141,6 +141,6 @@ export const STUDENT_ID_EXAMPLE = '26301234';
 export const EVENT = {
   club: 'BUCC',
   clubFull: 'BRAC University Computer Club',
-  label: 'BUCC Fall 26',
+  label: 'BUCC Orientation Fall 26',
   title: 'The Sorting Ceremony',
 } as const;
