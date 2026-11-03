@@ -827,7 +827,7 @@
 }
 /* The slam is one timeline per layer, all sharing --slam (set from WaxStamp.tsx) and the same
    impact moment (37%): the die falls and lands, the blob is swapped for the pressed seal under
-   it, a shock ring goes out, then the die lifts away and the stamped B is left behind. */
+   it, a shock ring goes out, then the die lifts away and the stamped club logo is left behind. */
 .stamp-blob,
 .stamp-seal,
 .stamp-die {
@@ -911,10 +911,6 @@
 @keyframes stamp-splash {
   0% { opacity: 0.6; transform: scale(0.9); }
   100% { opacity: 0; transform: scale(1.6); }
-}
-.stamp-glyph {
-  font-family: var(--font-display);
-  font-size: 40px;
 }
 .stamp[data-nudge] {
   animation: stamp-nudge 420ms ease-in-out;

@@ -6,13 +6,14 @@ import {
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
+import { LOGO_BOX, LOGO_PATHS } from '../config/buccLogo';
 
 /**
  * Press-and-hold wax seal that replaces the submit button.
  *
  * - Pointer (mouse / touch / pen): the button is a plain blob of wax on the paper. Hold for
  *   `holdMs` while a ring fills around it; when the ring closes, a seal die slams down, flattens
- *   the blob into the stamped B seal and lifts away, then `onComplete` fires. Letting go early
+ *   the blob into the stamped club-logo seal and lifts away, then `onComplete` fires. Letting go early
  *   cancels. A quick tap nudges the hint instead.
  * - Keyboard (Enter / Space) and assistive tech (a click with no pointer): activates at once,
  *   because holding a key is a poor ask for people who rely on them. Enter inside the ID field
@@ -85,6 +86,22 @@ function waxBlob(cx: number, cy: number, r: number): string {
 const SEAL_PATH = waxSeal(60, 60, 41, 9);
 const BLOB_PATH = waxBlob(59, 61, 29);
 const BLOB_DOME = waxBlob(58, 59, 22);
+
+/** Logo height inside the seal's inner ring (r = 33), in seal units. */
+const LOGO_H = 51;
+const LOGO_SCALE = LOGO_H / LOGO_BOX.h;
+const LOGO_TRANSFORM = `translate(60 60) scale(${LOGO_SCALE.toFixed(4)}) translate(${-(LOGO_BOX.x + LOGO_BOX.w / 2)} ${-(LOGO_BOX.y + LOGO_BOX.h / 2)})`;
+
+/** The logo centred in the seal; the parent <g> sets the colour. */
+function BuccMark() {
+  return (
+    <g transform={LOGO_TRANSFORM}>
+      {LOGO_PATHS.map((p, i) => (
+        <path key={i} d={p.d} fillRule={p.evenodd ? 'evenodd' : undefined} />
+      ))}
+    </g>
+  );
+}
 
 function vibrate(pattern: number | number[]) {
   try {
@@ -243,21 +260,22 @@ export function WaxStamp({ label, disabled = false, holdMs = 850, onBeforeHold, 
             <ellipse cx="72" cy="78" rx="9" ry="4" fill="#3d0904" opacity="0.28" transform="rotate(-28 72 78)" />
           </g>
 
-          {/* 2. After: the pressed seal with the B. Hidden until the die lands on it. */}
+          {/* 2. After: the pressed seal with the club logo. Hidden until the die lands on it. */}
           <g className="stamp-seal">
             <path d={SEAL_PATH} fill="#3a0a06" opacity="0.35" transform="translate(1.5 2.5)" />
             <path d={SEAL_PATH} fill="url(#wax-fill)" />
-            <circle cx="60" cy="60" r="31" fill="none" stroke="#000" strokeOpacity="0.28" strokeWidth="1.6" transform="translate(0.8 0.8)" />
-            <circle cx="60" cy="60" r="31" fill="none" stroke="#ffb9a8" strokeOpacity="0.32" strokeWidth="1.4" />
-            <text x="60" y="73.5" textAnchor="middle" className="stamp-glyph" fill="#000" opacity="0.38" transform="translate(1 1)">
-              B
-            </text>
-            <text x="60" y="73.5" textAnchor="middle" className="stamp-glyph" fill="#ffb9a8" opacity="0.4" transform="translate(-0.7 -0.7)">
-              B
-            </text>
-            <text x="60" y="73.5" textAnchor="middle" className="stamp-glyph" fill="#6e120b">
-              B
-            </text>
+            <circle cx="60" cy="60" r="34" fill="none" stroke="#000" strokeOpacity="0.28" strokeWidth="1.6" transform="translate(0.8 0.8)" />
+            <circle cx="60" cy="60" r="34" fill="none" stroke="#ffb9a8" strokeOpacity="0.32" strokeWidth="1.4" />
+            {/* The club logo, pressed in: a dark shadow, a pale lip, then the dark relief on top. */}
+            <g transform="translate(0.8 0.8)" fill="#000" opacity="0.4">
+              <BuccMark />
+            </g>
+            <g transform="translate(-0.5 -0.5)" fill="#ffb9a8" opacity="0.4">
+              <BuccMark />
+            </g>
+            <g fill="#6e120b">
+              <BuccMark />
+            </g>
           </g>
 
           {/* 3. The seal die, seen from above: it falls toward you, lands, and lifts away. */}
