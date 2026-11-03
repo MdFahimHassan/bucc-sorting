@@ -41,10 +41,10 @@ export const DEPARTMENTS: readonly Department[] = [
   {
     id: 'creative',
     name: 'Creative',
-    patronus: 'Jack Russell Terrier',
-    bearer: 'Ron’s',
+    patronus: 'Tabby Cat',
+    bearer: 'McGonagall’s',
     accent: '#6f8cf7',
-    flavor: 'Loyal, funny and braver than you let on. Your ideas come running before anyone has called them.',
+    flavor: 'Poised, sharp-eyed and braver than you let on. Your ideas arrive exactly when needed, and always land on their feet.',
     sortingLine: 'Visions shaped from pure magic...',
     description: [
       'You give BUCC its look: posters, video, motion and brand identity.',
