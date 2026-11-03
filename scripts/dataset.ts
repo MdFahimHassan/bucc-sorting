@@ -1,7 +1,7 @@
 import {
-  deriveAesKey,
+  DATA_VERSION,
+  deriveKeys,
   encryptPayload,
-  lookupKey,
   toHex,
   type DataFile,
 } from '../src/lib/crypto-core';
@@ -89,6 +89,10 @@ export function validateRows(rows: Row[], knownDepts: readonly string[]): Valida
   const counts = new Map<string, number>(knownDepts.map((d) => [d, 0]));
   const seen = new Map<string, string>();
   for (const r of rows) {
+    if (/^\d+\.0+$/.test(r.id.trim())) {
+      errors.push(`ID "${r.id}" (${r.name}) looks like a spreadsheet number with a trailing .0; use plain digits`);
+      continue;
+    }
     const nid = normalizeId(r.id);
     if (!nid) {
       errors.push(`ID "${r.id}" is empty after normalisation`);
@@ -109,11 +113,16 @@ export function validateRows(rows: Row[], knownDepts: readonly string[]): Valida
 export async function buildDataset(rows: Row[], salt?: string): Promise<DataFile> {
   const s = salt ?? toHex(globalThis.crypto.getRandomValues(new Uint8Array(16)).buffer);
   const entries: DataFile['entries'] = {};
-  for (const r of rows) {
-    const nid = normalizeId(r.id);
-    const key = await lookupKey(s, nid);
-    const aes = await deriveAesKey(nid, s);
-    entries[key] = await encryptPayload(aes, { name: r.name, dept: r.dept });
+  // PBKDF2 is deliberately slow (1,500 rows take ~25s on one core); batching lets multi-core machines overlap it.
+  const BATCH = 32;
+  for (let i = 0; i < rows.length; i += BATCH) {
+    const done = await Promise.all(
+      rows.slice(i, i + BATCH).map(async (r) => {
+        const { lookupKey, aesKey } = await deriveKeys(normalizeId(r.id), s);
+        return [lookupKey, await encryptPayload(aesKey, { name: r.name, dept: r.dept })] as const;
+      }),
+    );
+    for (const [k, e] of done) entries[k] = e;
   }
-  return { salt: s, entries };
+  return { v: DATA_VERSION, salt: s, entries };
 }

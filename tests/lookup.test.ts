@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { normalizeId } from '../src/lib/normalize';
 import { lookupWithData } from '../src/lib/lookup';
-import { lookupKey, type DataFile } from '../src/lib/crypto-core';
+import { DATA_VERSION, deriveKeys, type DataFile } from '../src/lib/crypto-core';
 import { buildDataset, parseCsv, rowsFromCsv, validateRows } from '../scripts/dataset';
 import { DEPARTMENT_IDS } from '../src/config/departments';
 
@@ -62,9 +62,10 @@ describe('lookup round trip', () => {
 
   it('fails closed when ciphertext is tampered with', async () => {
     const target = ROWS[0]!;
-    const key = await lookupKey(data.salt, normalizeId(target.id));
+    const { lookupKey: key } = await deriveKeys(normalizeId(target.id), data.salt);
     const original = data.entries[key]!;
     const bad: DataFile = {
+      v: data.v,
       salt: data.salt,
       entries: { ...data.entries, [key]: { ...original, ct: 'AAAA' + original.ct.slice(4) } },
     };
@@ -80,7 +81,30 @@ describe('lookup round trip', () => {
       expect(json).not.toContain(row.name);
       expect(json).not.toContain(`"${row.dept}"`);
     }
-    expect(Object.keys(data)).toEqual(['salt', 'entries']);
+    expect(Object.keys(data).sort()).toEqual(['entries', 'salt', 'v']);
+    expect(data.v).toBe(DATA_VERSION);
+  });
+
+  it('does not expose a bare SHA-256(salt+id) as the lookup key', async () => {
+    const bare = Array.from(
+      new Uint8Array(
+        await crypto.subtle.digest('SHA-256', new TextEncoder().encode(data.salt + '26301001')),
+      ),
+      (b) => b.toString(16).padStart(2, '0'),
+    ).join('');
+    expect(Object.keys(data.entries)).not.toContain(bare);
+  });
+
+  it('builds the same dataset in batches (more rows than one batch)', async () => {
+    const many = Array.from({ length: 70 }, (_, i) => ({
+      id: String(26400000 + i),
+      name: `Member ${i}`,
+      dept: 'events',
+    }));
+    const big = await buildDataset(many, 'batch-salt');
+    expect(Object.keys(big.entries).length).toBe(70);
+    const r = await lookupWithData(big, '26400069');
+    expect(r).toEqual({ status: 'found', person: { name: 'Member 69', dept: 'events' } });
   });
 
   it('uses a fresh IV per row', async () => {
@@ -105,6 +129,11 @@ describe('CSV validation', () => {
     const { errors } = validateRows(rows, DEPARTMENT_IDS);
     expect(errors.some((e) => e.includes('Duplicate ID'))).toBe(true);
     expect(errors.some((e) => e.includes('Unknown dept "nope"'))).toBe(true);
+  });
+
+  it('rejects spreadsheet-style float IDs like 22301342.0', () => {
+    const { errors } = validateRows([{ id: '22301342.0', name: 'A', dept: 'comms' }], DEPARTMENT_IDS);
+    expect(errors.some((e) => e.includes('trailing .0'))).toBe(true);
   });
 
   it('rejects a CSV with the wrong header', () => {
