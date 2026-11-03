@@ -1,10 +1,11 @@
 import { useMemo, type ReactNode } from 'react';
 import { isCompactDevice } from '../lib/motion';
+import { CastleScene } from './CastleScene';
 
 /**
  * The Great Hall at night, built only from transform/opacity animations:
  * star layers (box-shadow dots, one element each), a moon with slow light shafts and
- * drifting dust, an owl that crosses the moon now and then, mist and a castle silhouette.
+ * drifting dust, an owl that crosses the moon now and then, mist and a layered castle on a crag above a lake.
  * No canvas, no blur filters, no images.
  */
 
@@ -147,47 +148,7 @@ export function EnchantedBackdrop({ variant = 'intro', children }: BackdropProps
 
       {full && (
         <>
-          <div className="bd-ground" />
-          <svg className="bd-castle" viewBox="0 0 400 120" preserveAspectRatio="xMidYMax meet">
-            <g fill="#080b19">
-              {/* far hills */}
-              <path d="M-700 120V94L0 92c40-10 80-6 120-12s90-14 140-6 90 4 140-6L1100 88V140H-700z" opacity=".7" />
-              {/* main keep */}
-              <rect x="150" y="62" width="104" height="58" />
-              <rect x="164" y="54" width="76" height="10" />
-              {/* great tower with spire */}
-              <rect x="190" y="34" width="24" height="30" />
-              <polygon points="188,34 202,2 216,34" />
-              {/* left towers */}
-              <rect x="118" y="52" width="22" height="68" />
-              <polygon points="116,52 129,22 142,52" />
-              <rect x="92" y="72" width="18" height="48" />
-              <polygon points="90,72 101,50 112,72" />
-              <rect x="60" y="86" width="26" height="34" />
-              <rect x="58" y="82" width="30" height="4" />
-              {/* right towers */}
-              <rect x="262" y="48" width="22" height="72" />
-              <polygon points="260,48 273,16 286,48" />
-              <rect x="292" y="70" width="18" height="50" />
-              <polygon points="290,70 301,46 312,70" />
-              <rect x="318" y="84" width="28" height="36" />
-              <rect x="316" y="80" width="32" height="4" />
-              {/* ground */}
-              <path d="M-700 108H0c60-6 110-2 200-4s150 2 200 6h700v20H-700z" />
-            </g>
-            <g fill="#ffcf75">
-              <rect className="win" x="199" y="44" width="2.6" height="5" />
-              <rect className="win w2" x="126" y="64" width="2.6" height="5" />
-              <rect className="win w3" x="99" y="82" width="2.6" height="5" />
-              <rect className="win" x="170" y="74" width="2.6" height="5" />
-              <rect className="win w2" x="208" y="78" width="2.6" height="5" />
-              <rect className="win w3" x="236" y="72" width="2.6" height="5" />
-              <rect className="win" x="270" y="60" width="2.6" height="5" />
-              <rect className="win w2" x="298" y="82" width="2.6" height="5" />
-              <rect className="win w3" x="328" y="94" width="2.6" height="5" />
-              <rect className="win" x="70" y="96" width="2.6" height="5" />
-            </g>
-          </svg>
+          <CastleScene compact={compact} />
         </>
       )}
 

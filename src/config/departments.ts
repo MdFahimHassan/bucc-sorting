@@ -16,6 +16,8 @@ export interface Department {
   accent: string;
   /** One line, in the Sorting Hat's voice. */
   flavor: string;
+  /** Short line the Hat says mid-sort, between "Plenty of courage" and "I know just the place". */
+  sortingLine: string;
   /** Two lines on what the department does. */
   description: [string, string];
   groupChatUrl: string;
@@ -29,6 +31,7 @@ export const DEPARTMENTS: readonly Department[] = [
     bearer: 'Dumbledore’s',
     accent: '#f7707a',
     flavor: 'Rising, renewing, and always carrying the message. Wherever the club needs a voice, you arrive on wings.',
+    sortingLine: 'A silver tongue for alliances...',
     description: [
       'You carry BUCC’s story to the world: campaigns, outreach and partnerships.',
       'Where the club has something to say, you decide how far it travels.',
@@ -42,6 +45,7 @@ export const DEPARTMENTS: readonly Department[] = [
     bearer: 'Ron’s',
     accent: '#6f8cf7',
     flavor: 'Loyal, funny and braver than you let on. Your ideas come running before anyone has called them.',
+    sortingLine: 'Visions shaped from pure magic...',
     description: [
       'You give BUCC its look: posters, video, motion and brand identity.',
       'Every event starts as a blank page and leaves as something people remember.',
@@ -55,6 +59,7 @@ export const DEPARTMENTS: readonly Department[] = [
     bearer: 'Luna’s',
     accent: '#74dc7e',
     flavor: 'Light on your feet and tuned to what others miss. You turn an ordinary evening into something people believe in.',
+    sortingLine: 'Brave architects of beautiful chaos...',
     description: [
       'You plan and run BUCC’s workshops, contests and orientations.',
       'Logistics, hosting and the thousand small details that make a day go right.',
@@ -68,6 +73,7 @@ export const DEPARTMENTS: readonly Department[] = [
     bearer: 'Ginny’s',
     accent: '#a96ff7',
     flavor: 'Steady stride, sure footing. You carry the club’s weight without ever breaking pace.',
+    sortingLine: 'Calculating minds guarding the gold...',
     description: [
       'You manage BUCC’s budgets, sponsorships and spending.',
       'Every event that happens is one you made affordable.',
@@ -81,6 +87,7 @@ export const DEPARTMENTS: readonly Department[] = [
     bearer: 'Hermione’s',
     accent: '#f2e063',
     flavor: 'Clever, warm and fiercely loyal. You make sure nobody in the room is left behind.',
+    sortingLine: 'Seekers of true hidden potential...',
     description: [
       'You recruit, onboard and look after BUCC’s members.',
       'A club is only as strong as its people, and you keep them together.',
@@ -94,6 +101,7 @@ export const DEPARTMENTS: readonly Department[] = [
     bearer: 'Harry’s',
     accent: '#5fb4f7',
     flavor: 'Bold, steady and impossible to miss. Where you walk, the whole hall looks up.',
+    sortingLine: 'Relentless chroniclers of absolute truth...',
     description: [
       'You write BUCC’s announcements, articles, newsletters and reports.',
       'What the club does becomes the record people read and share.',
@@ -107,6 +115,7 @@ export const DEPARTMENTS: readonly Department[] = [
     bearer: 'Snape’s',
     accent: '#4fe3c6',
     flavor: 'Quiet, devoted and always a step ahead. You lead others to what they did not know they needed.',
+    sortingLine: 'Restless pioneers charting unknown magic...',
     description: [
       'You explore new tech, run projects and build tools for the club.',
       'Prototypes, experiments and learning in public, one idea at a time.',

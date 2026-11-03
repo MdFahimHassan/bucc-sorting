@@ -18,11 +18,13 @@ import { playChime } from '../lib/sound';
 import { ShareSheet } from '../components/ShareSheet';
 
 const TAU = Math.PI * 2;
-const HAT_LINES = [
-  'Hmm… difficult, very difficult…',
-  'Plenty of courage, I see…',
-  'I know just the place for you…',
-];
+/** Spoken in this order; the department's own `sortingLine` is slotted in between the two groups. */
+const HAT_LINES_BEFORE = ['Hmm… difficult, very difficult…', 'Plenty of courage, I see…'];
+const HAT_LINES_AFTER = ['I know just the place for you…'];
+/** Shown only if the lookup fails or is very slow, so the Hat never goes silent. */
+const HAT_LINE_FALLBACK = 'Let me look a little closer…';
+const TYPE_SPEED = 0.042; // seconds per character
+const HOLD = 0.85; // seconds each line stays after typing
 
 /** Crack lines drawn over each rejected crest (from the first draft of the app). */
 const CRACK_D = 'M52 6L40 30l12 9-14 22 11 8-9 20 M40 30l-14 8 M38 61l-14 6 M50 69l16 10';
@@ -156,8 +158,23 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
 
             const sp = { v: 1 };
             const master = gsap.timeline();
+            // The lookup started at submit, so the department is usually known by the time the Hat
+            // reaches the middle line. Track it so that line can be chosen from the result.
+            let deptLine: string | null = null;
+            let lookupSettled = false;
+            let onSettled: (() => void) | null = null;
+            const settle = (line: string | null) => {
+              deptLine = line;
+              lookupSettled = true;
+              onSettled?.();
+            };
+            lookup.then(
+              (r) => settle(r.status === 'found' ? (getDepartment(r.person.dept)?.sortingLine ?? null) : null),
+              () => settle(null),
+            );
+
             // typewriter, one line after another
-            HAT_LINES.forEach((line) => {
+            const addLine = (line: string) => {
               const o = { n: 0 };
               master
                 .call(() => {
@@ -166,14 +183,50 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
                 })
                 .to(o, {
                   n: line.length,
-                  duration: line.length * 0.042,
+                  duration: line.length * TYPE_SPEED,
                   ease: 'none',
                   onUpdate: () => {
                     hatLine.textContent = line.slice(0, Math.round(o.n));
                   },
                 })
-                .to({}, { duration: 0.85 }); // hold each line long enough to read it
-            });
+                .to({}, { duration: HOLD }); // hold each line long enough to read it
+            };
+            HAT_LINES_BEFORE.forEach(addLine);
+
+            // The department-specific line. Its length is only known at run time, so the slot is sized
+            // for the longest line and the typing speed stays constant for whichever line is used.
+            const slotChars = Math.max(...DEPARTMENTS.map((d) => d.sortingLine.length));
+            const slot = { t: 0 };
+            master
+              .call(() => {
+                hatLine.textContent = '';
+                gsap.set(hatLine, { opacity: 1 });
+                // If the lookup is still running, hold the sequence (tension included) until it lands,
+                // but never for more than 2.5s.
+                if (!lookupSettled) {
+                  master.pause();
+                  const resume = () => {
+                    onSettled = null;
+                    if (!cancelled) master.resume();
+                  };
+                  onSettled = resume;
+                  gsap.delayedCall(2.5, () => {
+                    if (!lookupSettled) settle(null);
+                  });
+                }
+              })
+              .to(slot, {
+                t: slotChars * TYPE_SPEED,
+                duration: slotChars * TYPE_SPEED,
+                ease: 'none',
+                onUpdate: () => {
+                  const text = deptLine ?? HAT_LINE_FALLBACK;
+                  hatLine.textContent = text.slice(0, Math.min(text.length, Math.round(slot.t / TYPE_SPEED)));
+                },
+              })
+              .to({}, { duration: HOLD });
+
+            HAT_LINES_AFTER.forEach(addLine);
             // rising tension over the same span
             const T = master.duration();
             master

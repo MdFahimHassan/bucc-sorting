@@ -1894,27 +1894,35 @@
   to { transform: scaleY(-0.55); }
 }
 
-/* Castle silhouette */
+/* Castle on its crag, with lake reflection (see CastleScene.tsx) */
 .bd-castle {
   position: absolute;
   left: 0;
   bottom: 0;
   width: 100%;
-  height: 30vh;
+  height: 27vh;
   min-height: 150px;
-  max-height: 300px;
+  max-height: 260px;
   overflow: visible;
   /* soften the hill ends where the drawing stops on wide screens */
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
   mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
 }
-.bd-ground {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: calc(min(30vh, 300px) * 0.12 + 2px);
-  background: #080b19;
+/* moonlit ripples on the lake */
+.cs-sh {
+  opacity: 0;
+  animation: cs-shimmer 6s ease-in-out infinite;
+}
+.cs-sh-b {
+  animation-name: cs-shimmer-b;
+}
+@keyframes cs-shimmer {
+  0%, 100% { opacity: 0; transform: translate3d(-3px, 0, 0); }
+  50% { opacity: 0.55; transform: translate3d(3px, 0, 0); }
+}
+@keyframes cs-shimmer-b {
+  0%, 100% { opacity: 0.1; transform: translate3d(3px, 0, 0); }
+  50% { opacity: 0.45; transform: translate3d(-3px, 0, 0); }
 }
 .win {
   animation: win 5s ease-in-out infinite;
@@ -1929,7 +1937,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .bd-stars, .bd-mist, .bd-moon-halo, .bd-shaft, .bd-mote, .bd-owl, .bd-owl-bob, .bd-wing,
-  .win, .writing-wand-halo, .cm-candle, .cm-flame, .rune-a, .rune-b, .fx-rays {
+  .win, .cs-sh, .writing-wand-halo, .cm-candle, .cm-flame, .rune-a, .rune-b, .fx-rays {
     animation: none;
   }
   .hx-shine {
