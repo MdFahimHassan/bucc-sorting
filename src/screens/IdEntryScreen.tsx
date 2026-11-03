@@ -5,7 +5,9 @@ import { Footprints } from '../components/Footprints';
 import { InkText } from '../components/InkText';
 import { Owl } from '../components/Owl';
 import { WaxStamp } from '../components/WaxStamp';
+import { closeScroll } from '../lib/closeScroll';
 import { cryptoSupported } from '../lib/lookup';
+import { prefersReducedMotion, sleep } from '../lib/motion';
 import { particles } from '../lib/particles';
 import { useScrollIntro } from '../lib/useScrollIntro';
 import { validateIdInput } from '../lib/validate';
@@ -42,6 +44,11 @@ export function IdEntryScreen({ onSubmit, lockedUntil, initialValue = '' }: Prop
   const ribbonRef = useRef<HTMLDivElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const flashRef = useRef<HTMLDivElement>(null);
+  const duskRef = useRef<HTMLDivElement>(null);
+  const closingRef = useRef(false);
+  const alive = useRef(true);
+  const [closing, setClosing] = useState(false);
 
   const { stage, played, skip } = useScrollIntro({
     wrap: wrapRef,
@@ -92,10 +99,47 @@ export function IdEntryScreen({ onSubmit, lockedUntil, initialValue = '' }: Prop
     return true;
   };
 
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
+
+  /**
+   * Hand the ID over. The scroll first closes and the screen goes dark (closeScroll.ts), so the
+   * ceremony can come up out of the dark instead of replacing the scroll in one frame. Both ways
+   * of submitting (the seal, and Enter) come through here.
+   */
+  const send = () => {
+    if (closingRef.current) return;
+    const id = valueRef.current;
+    const card = cardRef.current;
+    const top = topRef.current;
+    const bottom = bottomRef.current;
+    const flash = flashRef.current;
+    const dusk = duskRef.current;
+    if (prefersReducedMotion() || !card || !top || !bottom || !flash || !dusk || typeof card.animate !== 'function') {
+      onSubmit(id);
+      return;
+    }
+    closingRef.current = true;
+    setClosing(true);
+    // The timeout is only a safety net, so a stalled animation can never trap someone on this screen.
+    void Promise.race([
+      closeScroll({ card, top, bottom, flash, dusk, content: card.querySelector<HTMLElement>('.map-content') }),
+      sleep(2400),
+    ])
+      .catch(() => undefined)
+      .then(() => {
+        if (alive.current) onSubmit(id);
+      });
+  };
+
   // Enter / the keyboard's Go key submits straight away; the seal is the pointer path.
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (check()) onSubmit(valueRef.current);
+    if (check()) send();
   };
 
   return (
@@ -124,7 +168,7 @@ export function IdEntryScreen({ onSubmit, lockedUntil, initialValue = '' }: Prop
         <div ref={topRef} className="roll roll-edge roll-top" aria-hidden="true" />
 
         <section ref={cardRef} className="parchment" aria-labelledby={`${inputId}-title`}>
-          <div className="map-content" inert={!ready}>
+          <div className="map-content" inert={!ready || closing}>
             <InkText text={OATH} className="oath" startDelayMs={oathDelay} />
             <h1 id={`${inputId}-title`} className="sr-only">
               Find your department
@@ -179,7 +223,7 @@ export function IdEntryScreen({ onSubmit, lockedUntil, initialValue = '' }: Prop
                   label={locked ? `The Hat needs a moment (${wait})` : 'Hold to seal your fate'}
                   disabled={locked}
                   onBeforeHold={check}
-                  onComplete={() => onSubmit(valueRef.current)}
+                  onComplete={send}
                 />
               </form>
             )}
@@ -208,6 +252,10 @@ export function IdEntryScreen({ onSubmit, lockedUntil, initialValue = '' }: Prop
       <p className="intro-skip" aria-hidden="true">
         Tap to skip
       </p>
+
+      {/* Closing the scroll: a flash where it was sealed, then the dark that the ceremony comes up out of. */}
+      <div ref={flashRef} className="id-flash" aria-hidden="true" />
+      <div ref={duskRef} className="id-dusk" aria-hidden="true" />
     </div>
   );
 }

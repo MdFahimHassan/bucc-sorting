@@ -1,0 +1,174 @@
+/* ------------------------------------------------------------------
+   Screen transitions (driven by App.tsx; durations come from lib/motion.ts as --pan-ms / --fade-ms).
+
+   App keeps the OUTGOING screen mounted for the length of the transition, in a ".phase-leave"
+   layer taken out of the layout, and puts classes on the layers while that lasts:
+
+     pan   title -> scroll. The camera follows the owl: the title scene sweeps left, the scroll
+           scene's backdrop arrives from the right, and the owl (which lives in the scroll screen
+           and is NOT moved by the pan) flies across the title scene to the middle.
+     dusk  scroll -> ceremony: the scroll closes and goes dark by itself, the ceremony fades up from it.
+     quick not-found screen in and out: a short, light crossfade.
+     fade  every other change: old screen fades out underneath, new one fades in on top.
+     reduced  reduced motion: one plain 250 ms crossfade for all of them.
+------------------------------------------------------------------- */
+.app-main {
+  position: relative;
+  --pan-ease: cubic-bezier(0.5, 0, 0.2, 1);
+}
+
+/* The leaving screen no longer takes part in the layout. */
+.phase-leave {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+}
+
+/* While panning, parked-off-screen layers must not create a horizontal scrollbar. */
+html.is-panning {
+  overflow-x: hidden;
+}
+
+/* ---------- pan: title scene -> scroll scene ---------- */
+.phase-pan-leave {
+  animation: pan-out var(--pan-ms, 1400ms) var(--pan-ease) both;
+}
+/* The title text is nearer the camera than the sky and castle, so it travels a bit further. */
+.phase-pan-leave .intro-inner {
+  animation: pan-out-near var(--pan-ms, 1400ms) var(--pan-ease) both;
+}
+@keyframes pan-out {
+  to {
+    transform: translate3d(-100%, 0, 0);
+  }
+}
+@keyframes pan-out-near {
+  to {
+    transform: translate3d(-28vw, 0, 0);
+  }
+}
+
+/* The scroll screen itself is not moved (the owl flies in its own coordinates). Only its backdrop
+   arrives from the right, so the screen needs a see-through base and no fade of its own. */
+.phase-pan-enter .map-screen {
+  background: none;
+}
+/* Start the screen's own fade already finished (negative delay, same animation name, so nothing
+   restarts when this class is removed afterwards). */
+.phase-pan-enter .screen-in {
+  animation-delay: -1s;
+}
+.phase-pan-enter .sc-atmo {
+  animation: pan-in var(--pan-ms, 1400ms) var(--pan-ease) both;
+}
+@keyframes pan-in {
+  from {
+    transform: translate3d(100%, 0, 0);
+  }
+}
+
+/* ---------- soft changes: fade, quick, dusk, reduced ----------
+   The old screen is underneath (taken out of the layout), the new one arrives on top. --fade-ms is
+   set per kind by App.tsx. */
+.phase-fade-leave,
+.phase-quick-leave {
+  animation: phase-fade-out var(--fade-ms, 640ms) cubic-bezier(0.77, 0, 0.175, 1) both;
+}
+@keyframes phase-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+/* dusk: the scroll screen has already gone dark by itself (.id-dusk below), so it simply stays
+   until the ceremony on top of it is fully up. Nothing to animate. */
+
+/* Screens with their own .screen-in (id, not-found) just get it stretched to the crossfade. The
+   ceremony has no entrance of its own, so its layer fades in. Opacity only: the ceremony measures
+   its layout on mount, which transforms would disturb. */
+.phase-soft-enter .screen-in {
+  animation-duration: var(--fade-ms, 640ms);
+}
+.phase-soft-enter[data-phase='ceremony'] {
+  animation: phase-fade-in var(--fade-ms, 640ms) var(--ease-out) both;
+}
+@keyframes phase-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ---------- scroll closing (closeScroll.ts, inside the scroll screen) ----------
+   A flash where the scroll was sealed, then a dark layer that stays, so what comes next rises out of
+   black. Both are driven by the Web Animations API. */
+.id-flash {
+  position: fixed;
+  z-index: 9;
+  left: 50%;
+  top: 50%;
+  width: 70vmax;
+  height: 70vmax;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgb(255 226 160 / 0.95),
+    rgb(255 160 70 / 0.45) 28%,
+    transparent 62%
+  );
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.15);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.id-dusk {
+  position: fixed;
+  z-index: 8;
+  inset: 0;
+  background: var(--night-950);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ---------- replay: dip to black and back ---------- */
+.dip {
+  position: fixed;
+  z-index: 45; /* over the particle canvas (40), under the HUD (50) */
+  inset: 0;
+  background: var(--night-950);
+  /* Blocks taps while the stage is swapped underneath. */
+}
+.dip-in {
+  animation: dip-in var(--dip-in-ms, 320ms) ease-in both;
+}
+.dip-out {
+  pointer-events: none;
+  animation: dip-out var(--dip-out-ms, 560ms) ease-out both;
+}
+@keyframes dip-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes dip-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* ---------- reduced motion: every change is one plain, short crossfade ----------
+   The global reduced-motion rule makes all animation instant, so these opt back in (!important
+   beats it). Opacity only; nothing moves. */
+.phase-reduced-leave {
+  animation: phase-fade-out var(--fade-ms, 250ms) linear both;
+  animation-duration: var(--fade-ms, 250ms) !important;
+}
+.phase-reduced-enter {
+  animation: phase-fade-in var(--fade-ms, 250ms) linear both;
+  animation-duration: var(--fade-ms, 250ms) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .phase-pan-leave .intro-inner {
+    animation: none;
+  }
+}

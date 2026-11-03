@@ -152,12 +152,31 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
         try {
           // ================= 1. SORTING =================
           if (!reduced) {
+            // ----- entrance -----
+            // The ceremony comes up out of the dark (App.tsx, "dusk"), so the stage assembles itself
+            // rather than being there from the first frame: the rune circle fades up, the Hat drops
+            // in and settles, then the crests spring outward from it, one after another. The ring
+            // radius is the physics value S.r, so the crests gather by growing it from 0.
+            S.r = 0;
+            gsap.from(rune, { opacity: 0, duration: 1.3, ease: 'power1.out' });
+            gsap.from(hatWrap, { y: -90, opacity: 0, scale: 0.85, duration: 0.95, ease: 'power3.out' });
+            gsap.to(S, { r: 1, duration: 1.15, delay: 0.3, ease: 'back.out(1.5)' });
+            gsap.from(items, { opacity: 0, duration: 0.45, stagger: 0.09, delay: 0.3, ease: 'power1.out' });
+            gsap.from(bodies, { scale: 0.35, duration: 0.7, stagger: 0.09, delay: 0.3, ease: 'back.out(2)' });
+            // A soft puff of gold as the Hat lands.
+            gsap.delayedCall(0.8, () => {
+              if (cancelled) return;
+              const c = center(hatWrap);
+              particles.burst(c.x, c.y, '#f3d98c', 18);
+            });
+
             place();
             gsap.ticker.add(tick);
             particles.setEmbers(1);
 
             const sp = { v: 1 };
-            const master = gsap.timeline();
+            // The Hat starts speaking once the stage has settled.
+            const master = gsap.timeline({ delay: 0.55 });
             // The lookup started at submit, so the department is usually known by the time the Hat
             // reaches the middle line. Track it so that line can be chosen from the result.
             let deptLine: string | null = null;

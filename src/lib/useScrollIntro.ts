@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
-import { prefersReducedMotion } from './motion';
+import { OWL_GLIDE_MS, prefersReducedMotion } from './motion';
 
 /**
  * The owl delivers the scroll, the red string comes off, the scroll unrolls.
@@ -126,14 +126,15 @@ export function useScrollIntro(parts: IntroParts): {
       const dx = hoverX + owlW * (90 / 200) - targetX;
       const dy = owlTop + owlH * (114 / 140) - targetY;
 
-      // 1. Owl glides in and slows to a hover over the middle.
+      // 1. Owl glides in and slows to a hover over the middle. This runs while the title scene pans
+      //    away (App.tsx / transitions.css), so the owl is what the "camera" follows.
       await play(
         owl,
         [
           { transform: `translate(${-owlW * 1.15}px, 28px)` },
           { transform: `translate(${hoverX}px, 0px)` },
         ],
-        { duration: 950, easing: 'cubic-bezier(0.3, 0.6, 0.4, 1)' },
+        { duration: OWL_GLIDE_MS, easing: 'cubic-bezier(0.35, 0.1, 0.3, 1)' },
       );
       if (cancelled) return;
 
