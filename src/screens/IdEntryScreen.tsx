@@ -213,7 +213,7 @@ export function IdEntryScreen({ onSubmit, lockedUntil, initialValue = '' }: Prop
                   }}
                 />
                 <p id={helpId} className="map-help">
-                  8 digits, like {STUDENT_ID_EXAMPLE}. Spaces and dashes are fine.
+                  8 or 10 digits, like {STUDENT_ID_EXAMPLE}. Spaces and dashes are fine.
                 </p>
                 <p id={errId} className="map-error" role="alert" aria-live="assertive">
                   {error}

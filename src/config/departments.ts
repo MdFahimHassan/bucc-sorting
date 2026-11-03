@@ -140,11 +140,11 @@ export function hasGroupChat(d: Department): boolean {
 }
 
 /**
- * Student ID format: 8 digits, e.g. 26301234.
+ * Student ID format: 8 digits (e.g. 24201036) or 10 digits (e.g. 1000054460).
  * Change this regex (and the hint copy in the ID screen) if your IDs differ.
  * Used by the client for friendly validation; build-data.ts only requires non-empty.
  */
-export const STUDENT_ID_PATTERN = /^\d{8}$/;
+export const STUDENT_ID_PATTERN = /^(\d{8}|\d{10})$/;
 export const STUDENT_ID_EXAMPLE = '26301234';
 
 export const EVENT = {
