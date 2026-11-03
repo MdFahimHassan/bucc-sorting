@@ -96,7 +96,7 @@ export const DEPARTMENTS: readonly Department[] = [
   },
   {
     id: 'press',
-    name: 'Press Release and Publication',
+    name: 'Press Release and Publications',
     patronus: 'Stag',
     bearer: 'Harry’s',
     accent: '#5fb4f7',
