@@ -1,7 +1,7 @@
 import {
+  DATA_VERSION,
   decryptPayload,
-  deriveAesKey,
-  lookupKey,
+  deriveKeys,
   type DataFile,
   type Payload,
 } from './crypto-core';
@@ -25,6 +25,9 @@ export function cryptoSupported(): boolean {
 function isDataFile(v: unknown): v is DataFile {
   if (typeof v !== 'object' || v === null) return false;
   const d = v as DataFile;
+  // A data.json built by an older version of the app uses a different key scheme: reject it loudly
+  // instead of letting every student silently get "not found".
+  if (d.v !== DATA_VERSION) return false;
   return typeof d.salt === 'string' && typeof d.entries === 'object' && d.entries !== null;
 }
 
@@ -38,7 +41,7 @@ export function loadData(url = '/data.json'): Promise<DataFile> {
       return r.json() as Promise<unknown>;
     })
     .then((j) => {
-      if (!isDataFile(j)) throw new Error('data.json: unexpected shape');
+      if (!isDataFile(j)) throw new Error('data.json: unexpected shape or out-of-date format (rebuild it with npm run build:data)');
       return j;
     })
     .catch((e: unknown) => {
@@ -54,13 +57,13 @@ export async function lookupWithData(data: DataFile, rawId: string): Promise<Loo
   const id = normalizeId(rawId);
   if (!id) return { status: 'not-found' };
   try {
-    const key = await lookupKey(data.salt, id);
+    // One PBKDF2 run gives both the public lookup key and the private AES key.
+    const { lookupKey, aesKey } = await deriveKeys(id, data.salt);
     // Own-property check so inputs like "constructor" can never hit Object.prototype.
-    if (!Object.prototype.hasOwnProperty.call(data.entries, key)) return { status: 'not-found' };
-    const entry = data.entries[key];
+    if (!Object.prototype.hasOwnProperty.call(data.entries, lookupKey)) return { status: 'not-found' };
+    const entry = data.entries[lookupKey];
     if (!entry) return { status: 'not-found' };
-    const aes = await deriveAesKey(id, data.salt);
-    return { status: 'found', person: await decryptPayload(aes, entry) };
+    return { status: 'found', person: await decryptPayload(aesKey, entry) };
   } catch {
     return { status: 'not-found' };
   }
