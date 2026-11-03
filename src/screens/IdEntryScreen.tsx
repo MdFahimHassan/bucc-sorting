@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { STUDENT_ID_EXAMPLE } from '../config/departments';
+import { ScrollBackdrop } from '../components/ScrollBackdrop';
 import { Footprints } from '../components/Footprints';
 import { InkText } from '../components/InkText';
 import { Owl } from '../components/Owl';
@@ -105,6 +106,7 @@ export function IdEntryScreen({ onSubmit, lockedUntil, initialValue = '' }: Prop
       onPointerDown={ready ? undefined : skip}
       onKeyDown={ready ? undefined : skip}
     >
+      <ScrollBackdrop />
       <div className="owl-layer" aria-hidden="true">
         <div ref={owlRef} className="owl-fly">
           <div className="owl-bob">

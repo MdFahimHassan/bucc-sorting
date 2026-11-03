@@ -1217,6 +1217,55 @@
   background: linear-gradient(transparent, rgb(5 6 13 / 0.6) 60%);
 }
 
+/* ---------- ID (scroll) screen backdrop: warm dark, glow and embers (ScrollBackdrop.tsx) ---------- */
+/* The dark base lives on <html>/<body> so the particle canvas can sit between it and the parchment. */
+html.on-scroll,
+html.on-scroll body {
+  background: linear-gradient(#0c0a10, #060509) fixed;
+}
+html.on-scroll .layer-canvas {
+  z-index: 5; /* below the screen content (10), so orbs pass behind the scroll */
+}
+html.on-scroll .map-screen {
+  background: none;
+}
+/* Candlelight pooling behind the parchment. */
+.sc-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 55% at 50% 48%, rgb(255 160 70 / 0.26), transparent 75%);
+  animation: sc-breathe 7s ease-in-out infinite alternate;
+  will-change: opacity;
+}
+.sc-floor {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 100% 40% at 50% 100%, rgb(255 120 40 / 0.18), transparent 70%);
+}
+@keyframes sc-breathe {
+  from { opacity: 0.7; }
+  to { opacity: 1; }
+}
+.sc-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 40%, rgb(0 0 0 / 0.7) 100%);
+}
+.sc-ember {
+  position: absolute;
+  border-radius: 50%;
+  background: #ffd89a;
+  opacity: 0;
+  animation: sc-rise linear infinite;
+  will-change: transform, opacity;
+}
+@keyframes sc-rise {
+  0% { transform: translate3d(0, 0, 0); opacity: 0; }
+  15% { opacity: var(--peak, 0.6); }
+  85% { opacity: var(--peak, 0.6); }
+  100% { transform: translate3d(var(--dx, 30px), calc(var(--rise, 200px) * -1), 0); opacity: 0; }
+}
+
 /* Floating candles at the edges of the hall */
 .cm-candle {
   position: absolute;
@@ -1937,7 +1986,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .bd-stars, .bd-mist, .bd-moon-halo, .bd-shaft, .bd-mote, .bd-owl, .bd-owl-bob, .bd-wing,
-  .win, .cs-sh, .writing-wand-halo, .cm-candle, .cm-flame, .rune-a, .rune-b, .fx-rays {
+  .win, .cs-sh, .writing-wand-halo, .sc-glow, .sc-ember, .cm-candle, .cm-flame, .rune-a, .rune-b, .fx-rays {
     animation: none;
   }
   .hx-shine {
@@ -1949,6 +1998,9 @@
   }
   .bd-mote {
     opacity: 0.4;
+  }
+  .sc-ember {
+    opacity: 0.45;
   }
   .intro-line {
     -webkit-mask-image: none;

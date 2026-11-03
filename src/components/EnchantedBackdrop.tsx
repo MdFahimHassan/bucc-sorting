@@ -117,6 +117,11 @@ export function EnchantedBackdrop({ variant = 'intro', children }: BackdropProps
             ))}
           </div>
 
+        </>
+      )}
+
+      {full && (
+        <>
           {/* An owl crosses the moon every so often. */}
           <div className="bd-owl">
             <div className="bd-owl-bob">
