@@ -1,10 +1,15 @@
 import type { RefObject } from 'react';
+import rollBody from '../assets/scroll/roll-body.webp';
+import rollCapL from '../assets/scroll/roll-cap-l.webp';
+import rollCapR from '../assets/scroll/roll-cap-r.webp';
 
 /**
  * A snowy owl in side view, carrying the rolled scroll in its talons.
  * Original artwork, pure SVG (~2 KB). Wings flap with a CSS transform loop (see .owl-wing).
  * `carriedRef` points at the scroll in the talons so the intro can hide it the moment the
  * real, animated scroll is dropped.
+ * The scroll uses the same textures as the dropped scroll and the open scroll's rolls
+ * (src/assets/scroll/), so it is visibly the same object all the way through.
  */
 export function Owl({ carriedRef }: { carriedRef: RefObject<SVGGElement | null> }) {
   const wing =
@@ -19,11 +24,6 @@ export function Owl({ carriedRef }: { carriedRef: RefObject<SVGGElement | null> 
         <linearGradient id="owl-body" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#fdf8ec" />
           <stop offset="1" stopColor="#d6cab0" />
-        </linearGradient>
-        <linearGradient id="owl-roll" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#8a6a3a" />
-          <stop offset="0.35" stopColor="#f1e3bb" />
-          <stop offset="1" stopColor="#a8854e" />
         </linearGradient>
       </defs>
 
@@ -74,7 +74,11 @@ export function Owl({ carriedRef }: { carriedRef: RefObject<SVGGElement | null> 
       {/* talons + the scroll they hold */}
       <g ref={carriedRef}>
         <path d="M86 104 L84 111 M98 104 L100 111" stroke="#c9a35a" strokeWidth="3" strokeLinecap="round" />
-        <rect x="58" y="108" width="64" height="12" rx="6" fill="url(#owl-roll)" stroke="#6f5126" strokeWidth="0.7" />
+        {/* Same proportions as .roll in index.css, scaled to the 12-unit-high scroll: body, then the
+            slightly taller spiral ends sticking out either side. */}
+        <image href={rollBody} x="58" y="108" width="64" height="12" preserveAspectRatio="none" />
+        <image href={rollCapL} x="55.8" y="107.4" width="7.6" height="13.1" preserveAspectRatio="none" />
+        <image href={rollCapR} x="116.6" y="107.4" width="7.6" height="13.1" preserveAspectRatio="none" />
         <rect x="86" y="107" width="8" height="14" rx="1.5" fill="#b3261e" />
         <circle cx="90" cy="107" r="3.4" fill="#d23a30" />
       </g>
