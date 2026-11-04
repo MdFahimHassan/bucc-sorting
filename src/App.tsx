@@ -113,6 +113,8 @@ function Main() {
             ? 'quick'
             : 'fade';
     if (kind === 'pan') {
+      // Lock sideways overflow right now, before the first pan frame, not a render later.
+      document.documentElement.classList.add('is-panning');
       // The title turns to embers as the camera sweeps away from it.
       [0.25, 0.5, 0.75].forEach((x, i) => {
         window.setTimeout(() => particles.burst(window.innerWidth * x, window.innerHeight * 0.45, '#f3d98c', 14), i * 130);

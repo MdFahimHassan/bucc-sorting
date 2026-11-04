@@ -16,9 +16,9 @@ import { sfx } from '../lib/sound';
  *   `holdMs` while a ring fills around it; when the ring closes, a seal die slams down, flattens
  *   the blob into the stamped club-logo seal and lifts away, then `onComplete` fires. Letting go early
  *   cancels. A quick tap nudges the hint instead.
- * - Keyboard (Enter / Space) and assistive tech (a click with no pointer): activates at once,
- *   because holding a key is a poor ask for people who rely on them. Enter inside the ID field
- *   still submits too (see the form in IdEntryScreen).
+ * - Keyboard (Enter / Space while the seal itself is focused) and assistive tech (a click with no
+ *   pointer): activates at once, because holding a key is a poor ask for people who rely on them.
+ *   Enter inside the ID field does NOT submit (see the form in IdEntryScreen).
  * - `onBeforeHold` runs first and can veto (used to validate the ID so nobody holds for nothing).
  *
  * Progress is a CSS transition on an SVG ring, so no per-frame JS.
@@ -212,7 +212,7 @@ export function WaxStamp({ label, disabled = false, holdMs = 850, onBeforeHold, 
         data-phase={phase}
         data-nudge={nudge || undefined}
         disabled={disabled}
-        aria-label="Seal and reveal my department. Press and hold the seal, or press Enter."
+        aria-label="Seal and reveal my department. Press and hold the seal."
         style={{ ['--hold' as string]: `${holdMs}ms`, ['--slam' as string]: `${SLAM_MS}ms` }}
         onPointerDown={onPointerDown}
         onPointerUp={cancel}

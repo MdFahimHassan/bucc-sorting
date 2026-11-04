@@ -133,8 +133,8 @@ export function IdEntryScreen({ onSubmit, lockedUntil, initialValue = '' }: Prop
 
   /**
    * Hand the ID over. The scroll first closes and the screen goes dark (closeScroll.ts), so the
-   * ceremony can come up out of the dark instead of replacing the scroll in one frame. Both ways
-   * of submitting (the seal, and Enter) come through here.
+   * ceremony can come up out of the dark instead of replacing the scroll in one frame. Only the held
+   * wax seal comes through here; Enter does not submit.
    */
   const send = () => {
     if (closingRef.current) return;
@@ -162,10 +162,11 @@ export function IdEntryScreen({ onSubmit, lockedUntil, initialValue = '' }: Prop
       });
   };
 
-  // Enter / the keyboard's Go key submits straight away; the seal is the pointer path.
+  // Enter / the keyboard's Go key must NOT submit: the ID is only handed over by holding the wax seal.
+  // It just checks the ID, shows any problem, and closes the on-screen keyboard so the seal is in view.
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (check()) send();
+    if (check()) inputRef.current?.blur();
   };
 
   return (
@@ -222,7 +223,7 @@ export function IdEntryScreen({ onSubmit, lockedUntil, initialValue = '' }: Prop
                   className="map-input"
                   type="text"
                   inputMode="numeric"
-                  enterKeyHint="go"
+                  enterKeyHint="done"
                   autoComplete="off"
                   autoCorrect="off"
                   autoCapitalize="off"

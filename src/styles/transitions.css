@@ -27,7 +27,8 @@
 }
 
 /* While panning, parked-off-screen layers must not create a horizontal scrollbar. */
-html.is-panning {
+html.is-panning,
+html.is-panning body {
   overflow-x: hidden;
 }
 
@@ -60,12 +61,19 @@ html.is-panning {
 .phase-pan-enter .screen-in {
   animation-delay: -1s;
 }
+/* The backdrop itself stays put (it is fixed and clips its children), and only its CONTENTS slide in
+   from the right. Parking the whole fixed backdrop 100% off-screen made tablet browsers think the page
+   was wider than the screen and zoom out to fit it (the "shrinks to the top-left corner" bug). */
 .phase-pan-enter .sc-atmo {
+  overflow: hidden;
+  contain: paint;
+}
+.phase-pan-enter .sc-atmo > * {
   animation: pan-in var(--pan-ms, 1400ms) var(--pan-ease) both;
 }
 @keyframes pan-in {
   from {
-    transform: translate3d(100%, 0, 0);
+    transform: translate3d(100vw, 0, 0);
   }
 }
 
