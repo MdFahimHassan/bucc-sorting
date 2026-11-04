@@ -8,6 +8,25 @@ export function isCompactDevice(): boolean {
   return matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
 }
 
+/**
+ * Low-end phones get "lite" mode (a class on <html>, see the .lite rules in index.css): the purely
+ * decorative infinite animations are switched off. Detected from CPU cores / device memory.
+ * Test it on any device with ?lite=1 on the URL (or force it off with ?lite=0).
+ */
+export function isLiteDevice(): boolean {
+  try {
+    const q = new URLSearchParams(location.search).get('lite');
+    if (q === '1') return true;
+    if (q === '0') return false;
+  } catch {
+    /* ignore */
+  }
+  const nav = navigator as Navigator & { deviceMemory?: number };
+  const cores = nav.hardwareConcurrency ?? 8;
+  const mem = nav.deviceMemory ?? 8;
+  return cores <= 4 || mem <= 3;
+}
+
 export const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 /**

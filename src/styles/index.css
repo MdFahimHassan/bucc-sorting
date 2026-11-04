@@ -143,10 +143,10 @@
   z-index: 60;
   pointer-events: none;
   background:
-    radial-gradient(ellipse at 50% 45%, transparent 55%, rgb(0 0 0 / 0.55) 100%),
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 .9  0 0 0 0 .7  0 0 0 .5 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.5'/></svg>");
-  opacity: 0.14;
-  mix-blend-mode: screen;
+  /* No mix-blend-mode: a full-screen blend forces the GPU to re-blend the whole page every frame
+     (the main cause of jank on cheap phones). Plain alpha looks the same at this opacity. */
+  opacity: 0.12;
 }
 
 /* Utility: pressable surface with the project's shared feel. */
@@ -582,7 +582,18 @@
   max-width: 30rem;
 }
 .scroll-wrap {
-  filter: drop-shadow(0 26px 22px rgb(0 0 0 / 0.5));
+  /* A static shadow layer behind the scroll. This replaces filter: drop-shadow() on the wrapper, which
+     was re-rasterised whenever anything inside changed (typing, caret blink, intro animation). */
+  isolation: isolate;
+}
+.scroll-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 14px 22px 10px;
+  z-index: -1;
+  border-radius: 8px;
+  box-shadow: 0 26px 30px -4px rgb(0 0 0 / 0.5);
+  pointer-events: none;
 }
 /* The sheet is narrower than the rolls, so their curled ends stick out at the sides. */
 .scroll-wrap > .parchment {
@@ -2003,3 +2014,24 @@ html.on-scroll .map-screen {
     mask-image: none;
   }
 }
+
+/* ---------- Lite mode (<html class="lite">, set in main.tsx for low-end phones; try it with ?lite=1) ----------
+   Only decorative, always-running effects are switched off. The ceremony itself (GSAP), the owl, stars
+   and the crest ring are untouched, so it still looks like the same show, just lighter on the GPU. */
+html.lite .film-layer { display: none; }
+html.lite .rune-a,
+html.lite .rune-b,
+html.lite .fx-rays,
+html.lite .hx-icon,
+html.lite .bd-mist,
+html.lite .bd-shaft,
+html.lite .bd-moon-halo,
+html.lite .sc-glow,
+html.lite .cm-flame,
+html.lite .cm-candle,
+html.lite .cs-sh { animation: none; }
+
+html.lite .win { animation: none; opacity: 0.7; }
+html.lite .hx-shine { display: none; }
+html.lite .sc-ember:nth-child(n + 7) { display: none; }
+html.lite .bd-mote:nth-child(n + 9) { display: none; }

@@ -14,6 +14,7 @@ import {
 } from './lib/motion';
 import { particles } from './lib/particles';
 import { preloadAudio, sfx } from './lib/sound';
+import { preloadCrests } from './lib/preload';
 import { loadData, lookupParticipant, type LookupResult } from './lib/lookup';
 import { useWandTrail } from './lib/useWandTrail';
 import { CeremonyScreen } from './screens/CeremonyScreen';
@@ -81,7 +82,10 @@ function Main() {
 
   // Warm the (tiny) encrypted list while the intro plays. Failure is retried on submit.
   useEffect(() => {
-    void loadData().catch(() => undefined);
+    // The list first (it is what the lookup needs), then the crests, so neither slows the other.
+    void loadData()
+      .catch(() => undefined)
+      .finally(() => void preloadCrests());
   }, []);
 
   // A soft tick on every button. The title's own button and the wax seal have their own sounds.
@@ -113,8 +117,6 @@ function Main() {
             ? 'quick'
             : 'fade';
     if (kind === 'pan') {
-      // Lock sideways overflow right now, before the first pan frame, not a render later.
-      document.documentElement.classList.add('is-panning');
       // The title turns to embers as the camera sweeps away from it.
       [0.25, 0.5, 0.75].forEach((x, i) => {
         window.setTimeout(() => particles.burst(window.innerWidth * x, window.innerHeight * 0.45, '#f3d98c', 14), i * 130);

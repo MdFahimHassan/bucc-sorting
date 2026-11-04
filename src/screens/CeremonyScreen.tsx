@@ -12,6 +12,7 @@ import {
 } from '../config/departments';
 import { crestUrl } from '../config/crestImages';
 import type { LookupResult } from '../lib/lookup';
+import { crestsLoaded, crestsReady } from '../lib/preload';
 import { prefersReducedMotion, sleep } from '../lib/motion';
 import { particles } from '../lib/particles';
 import { playChime, sfx, stopSfx } from '../lib/sound';
@@ -152,6 +153,12 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
         try {
           // ================= 1. SORTING =================
           if (!reduced) {
+            // Normally the crests were preloaded during the intro. On a cold first visit over slow wifi they
+            // may still be downloading: wait briefly so they don't pop in halfway through the entrance.
+            if (!crestsLoaded()) {
+              await crestsReady(2500);
+              if (cancelled) return;
+            }
             // ----- entrance -----
             // The ceremony comes up out of the dark (App.tsx, "dusk"), so the stage assembles itself
             // rather than being there from the first frame: the rune circle fades up, the Hat drops

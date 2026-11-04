@@ -5,5 +5,4 @@ dev-dist
 *.log
 # Real participant data is never committed or deployed
 data/participants.csv
-# Generated, but regenerated on every build
-public/data.json
+# NOTE: public/data.json (the ENCRYPTED list) must be committed for Vercel. Keep the repo private.
