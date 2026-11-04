@@ -7,6 +7,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 import { LOGO_BOX, LOGO_PATHS } from '../config/buccLogo';
+import { sfx } from '../lib/sound';
 
 /**
  * Press-and-hold wax seal that replaces the submit button.
@@ -143,7 +144,10 @@ export function WaxStamp({ label, disabled = false, holdMs = 850, onBeforeHold, 
     window.clearTimeout(holdTimer.current);
     go('done');
     // The buzz belongs to the moment the die lands, not the moment the ring closes.
-    window.setTimeout(() => vibrate([14, 40, 26]), SLAM_MS * IMPACT);
+    window.setTimeout(() => {
+      vibrate([14, 40, 26]);
+      sfx('stamp');
+    }, SLAM_MS * IMPACT);
     // Let the die land and lift before the screen changes.
     doneTimer.current = window.setTimeout(() => cbs.current.onComplete(), SLAM_MS + 80);
   };

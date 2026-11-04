@@ -13,7 +13,7 @@ import {
   prefersReducedMotion,
 } from './lib/motion';
 import { particles } from './lib/particles';
-import { preloadAudio } from './lib/sound';
+import { preloadAudio, sfx } from './lib/sound';
 import { loadData, lookupParticipant, type LookupResult } from './lib/lookup';
 import { useWandTrail } from './lib/useWandTrail';
 import { CeremonyScreen } from './screens/CeremonyScreen';
@@ -82,6 +82,16 @@ function Main() {
   // Warm the (tiny) encrypted list while the intro plays. Failure is retried on submit.
   useEffect(() => {
     void loadData().catch(() => undefined);
+  }, []);
+
+  // A soft tick on every button. The title's own button and the wax seal have their own sounds.
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      const el = e.target instanceof Element ? e.target.closest('button') : null;
+      if (el && !el.disabled && !el.matches('.intro-cta, .stamp')) sfx('tick');
+    };
+    document.addEventListener('click', onClick);
+    return () => document.removeEventListener('click', onClick);
   }, []);
 
   /**
@@ -196,6 +206,7 @@ function Main() {
             onEnter={() => {
               // First tap: fetch the (tiny) audio chunk in the background. Sound stays off until toggled.
               preloadAudio();
+              sfx('swoosh');
               go('id');
             }}
           />
@@ -229,7 +240,7 @@ function Main() {
     <>
       <ParticleLayer />
       <main className="app-main" style={timing}>
-        {phase !== 'intro' && <SoundToggle />}
+        <SoundToggle />
         {leaving && (
           <div
             key={leaving.phase}

@@ -9,6 +9,7 @@ import { closeScroll } from '../lib/closeScroll';
 import { cryptoSupported } from '../lib/lookup';
 import { prefersReducedMotion, sleep } from '../lib/motion';
 import { particles } from '../lib/particles';
+import { sfx, stopSfx } from '../lib/sound';
 import { useScrollIntro } from '../lib/useScrollIntro';
 import { validateIdInput } from '../lib/validate';
 
@@ -69,6 +70,30 @@ export function IdEntryScreen({ onSubmit, lockedUntil, initialValue = '' }: Prop
     particles.setEmbers(0.3);
   }, []);
 
+  // Sound follows the scroll's stages (all no-ops while sound is off).
+  useEffect(() => {
+    const timers: number[] = [];
+    if (stage === 'owl') sfx('wings');
+    // The scroll lands 480ms into the drop, and bounces.
+    if (stage === 'drop') timers.push(window.setTimeout(() => sfx('stamp', { gain: 0.5, rate: 0.55 }), 470));
+    if (stage === 'untie') sfx('rope');
+    if (stage === 'unroll') {
+      sfx('paper');
+      timers.push(window.setTimeout(() => sfx('quill'), oathDelay + 100));
+    }
+    // Back here after a miss: no owl and no unrolling, but the oath still inks in.
+    if (stage === 'ready' && !played) timers.push(window.setTimeout(() => sfx('quill'), oathDelay + 100));
+    return () => timers.forEach((t) => window.clearTimeout(t));
+  }, [stage, played, oathDelay]);
+
+  useEffect(
+    () => () => {
+      stopSfx('wings', 0.2);
+      stopSfx('quill', 0.2);
+    },
+    [],
+  );
+
   // Focus only when the form is actually usable (after the unroll, not during it).
   useEffect(() => {
     if (!ready) return;
@@ -125,6 +150,7 @@ export function IdEntryScreen({ onSubmit, lockedUntil, initialValue = '' }: Prop
     }
     closingRef.current = true;
     setClosing(true);
+    sfx('paper', { gain: 0.8, rate: 1.15 });
     // The timeout is only a safety net, so a stalled animation can never trap someone on this screen.
     void Promise.race([
       closeScroll({ card, top, bottom, flash, dusk, content: card.querySelector<HTMLElement>('.map-content') }),

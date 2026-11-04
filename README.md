@@ -16,6 +16,10 @@ Sorting Hat deliberate, and are revealed to one of seven departments, each repre
   SHA-256 hashes, and each record is AES-GCM encrypted with a PBKDF2-derived key from the student ID.
   No names, IDs or departments exist in plaintext in the deployed bundle.
 - **Works offline:** a service worker precaches the app and data after the first load.
+- **Sound (off by default):** looping background music plus a sound for each beat of the ceremony
+  (owl wings, rope, parchment, wax stamp, heartbeat, cracking crests, reveal chime). Nothing is
+  downloaded until someone taps the speaker button. The effects total ~230 KB; the music (~1.3 MB)
+  streams. Mix levels are in one table at the top of `src/lib/audio.ts`.
 - **Mobile-first and light:** about 109 KB gzip of JavaScript, a particle cap with FPS-based
   auto-reduction, `prefers-reduced-motion` support, and lazy-loaded share-card and audio modules.
 - **Accessible:** live-region result announcements, visible focus states, 44px touch targets,
@@ -30,6 +34,28 @@ Self-hosted Cinzel, Cinzel Decorative and IM Fell English (SIL OFL).
 
 Intro title font: "Harry P" by Phoenix Phonts & GeM (Freeware, via fontspace.com), subset to Basic Latin
 with `scripts/make-title-font.py`.
+
+## Sound credits
+
+All sounds are from [Pixabay](https://pixabay.com) under the
+[Pixabay Content License](https://pixabay.com/service/license-summary/) (free to use, no attribution
+required; credited here anyway). They were trimmed, level-matched and re-encoded with
+`scripts/make-audio.py`; the originals are not in the repo.
+
+| Use | Sound | By |
+|---|---|---|
+| Background music | "Hogwarts Express" | Luis Humanoide |
+| Reveal chime | "A Magical Discovery Chime" | Youssef Mizani |
+| Hat's heartbeat | "Heartbeat 02" | BRVHRTZ |
+| Crests cracking | "Glass Bottle Smash" | Universfield |
+| Button tick | "Mouse Click" | Universfield |
+| Whooshes | "Thin Swoosh" | Universfield |
+| Wax seal, scroll landing | "Traditional Stamp" | freesound_community |
+| Oath inking in | "Quill Pen Writing on Hard Paper" | freesound_community |
+| Owl flying | "Dragon Wings Flapping" | DRAGON-STUDIO |
+| Scroll unrolling | "Foley Paper Handling & Page Turning" | LensPulse |
+| String coming off | "Rope & Leather Tension" | Alex (OxidVideos) |
+| Hat landing | "Magic Glitter Wand 5" | Robert Gacek (FxProSound) |
 
 ## Quality
 

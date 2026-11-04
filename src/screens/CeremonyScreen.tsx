@@ -14,7 +14,7 @@ import { crestUrl } from '../config/crestImages';
 import type { LookupResult } from '../lib/lookup';
 import { prefersReducedMotion, sleep } from '../lib/motion';
 import { particles } from '../lib/particles';
-import { playChime } from '../lib/sound';
+import { playChime, sfx, stopSfx } from '../lib/sound';
 import { ShareSheet } from '../components/ShareSheet';
 
 const TAU = Math.PI * 2;
@@ -163,9 +163,13 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
             gsap.to(S, { r: 1, duration: 1.15, delay: 0.3, ease: 'back.out(1.5)' });
             gsap.from(items, { opacity: 0, duration: 0.45, stagger: 0.09, delay: 0.3, ease: 'power1.out' });
             gsap.from(bodies, { scale: 0.35, duration: 0.7, stagger: 0.09, delay: 0.3, ease: 'back.out(2)' });
+            gsap.delayedCall(0.3, () => {
+              if (!cancelled) sfx('swoosh', { gain: 0.8, rate: 0.9 });
+            });
             // A soft puff of gold as the Hat lands.
             gsap.delayedCall(0.8, () => {
               if (cancelled) return;
+              sfx('sparkle');
               const c = center(hatWrap);
               particles.burst(c.x, c.y, '#f3d98c', 18);
             });
@@ -248,6 +252,8 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
             HAT_LINES_AFTER.forEach(addLine);
             // rising tension over the same span
             const T = master.duration();
+            // The heartbeat quickens with the tension (it is ~8s long; the deliberation is about the same).
+            master.call(() => sfx('heartbeat', { rate: 0.85, rateTo: 1.15, over: T }), [], 0);
             master
               .to(S, { speed: 3.4, duration: T, ease: 'power2.in' }, 0)
               .to(S, { shake: 1.5, duration: T, ease: 'power2.in' }, 0)
@@ -288,6 +294,7 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
           if (result.status !== 'found' || !dept) {
             ringOn = false;
             gsap.ticker.remove(tick);
+            stopSfx('heartbeat', 0.3);
             S.shake = 0;
             stage.style.transform = '';
             await gsap.to(shakeEl, { opacity: 0, duration: 0.3 });
@@ -314,6 +321,7 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
 
           // ================= 2. REVEAL =================
           // 2a. the ring releases and spins down slowly, then a beat of stillness
+          stopSfx('heartbeat', 0.5);
           await new Promise<void>((res) =>
             gsap
               .timeline({ onComplete: res })
@@ -349,6 +357,11 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
                 { scale: last ? 1.3 : 1, duration: last ? 0.5 : 0.3, ease: 'power2.out' },
                 t,
               );
+            flashTl.call(
+              () => (last ? sfx('stamp', { gain: 0.6, rate: 0.7 }) : sfx('tick', { gain: 0.9, rate: 0.85 + 0.5 * (k / K) })),
+              [],
+              t,
+            );
             if (last) flashTl.call(() => particles.burst(cc.x, cc.y, dept.accent, 12), [], t);
             t += 0.11 + 0.3 * Math.pow(k / K, 2);
           }
@@ -366,6 +379,7 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
             const c = center(it);
             crackTl
               .set(cracks[i]!, { opacity: 1 }, at)
+              .call(() => sfx('crack', { gain: 0.5, rate: 0.85 + Math.random() * 0.5 }), [], at + 0.1)
               .set(auras[i]!, { '--c': HOT }, at)
               .fromTo(
                 crackPaths[i]!,
@@ -407,6 +421,7 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
             chosen.style.transform = `translate3d(${C.x.toFixed(1)}px,${C.y.toFixed(1)}px,0) scale(${C.s.toFixed(3)})`;
           };
           const mv = gsap.timeline();
+          sfx('swoosh', { gain: 0.9, rate: 0.7 });
           mv.to(C, { x: 0, y: 0, s: 3, duration: 1.3, ease: 'power3.inOut', onUpdate: apply }, 0)
             .to(bodies[idx]!, { scale: 1, duration: 0.6 }, 0)
             .to(haloWrap, { opacity: 1, duration: 1.1, ease: 'power2.out' }, 0.2)
@@ -486,6 +501,7 @@ export function CeremonyScreen({ lookup, onFound, onFail, onReplay, onAnotherId 
       cancelled = true;
       window.removeEventListener('resize', placeFx);
       gsap.ticker.remove(tick);
+      stopSfx(undefined, 0.2);
       ctx.revert();
       particles.setSpeed(1);
       particles.setEmbers(0.3);

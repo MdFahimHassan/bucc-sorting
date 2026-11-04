@@ -43,6 +43,16 @@ export default defineConfig({
             options: { cacheName: 'pages', networkTimeoutSeconds: 3 },
           },
           {
+            // The small sound effects (a few KB each) are cached the first time sound is turned on, so
+            // sound keeps working offline afterwards. Nothing is downloaded for people who never turn it
+            // on. The ~1.3 MB music loop is left out on purpose: it streams through an <audio> element
+            // (which needs range requests) and the browser's own cache keeps it (/assets/* is immutable);
+            // offline on first use, the engine falls back to a synthesized drone.
+            urlPattern: ({ url }) => /\/assets\/(?!music-)[^/]+\.mp3$/.test(url.pathname),
+            handler: 'CacheFirst',
+            options: { cacheName: 'sfx', expiration: { maxEntries: 20 } },
+          },
+          {
             urlPattern: ({ url }) => url.pathname === '/data.json',
             handler: 'NetworkFirst',
             options: { cacheName: 'data', networkTimeoutSeconds: 3 },
