@@ -10,7 +10,6 @@ interface Props {
   onClose: () => void;
 }
 
-/** Preview of the story card. Doubles as the fallback for in-app browsers: press and hold to save. */
 export function ShareSheet({ url, fileName, canNativeShare, onShare, onDownload, onClose }: Props) {
   const closeRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {

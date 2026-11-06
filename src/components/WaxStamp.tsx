@@ -9,27 +9,12 @@ import {
 import { LOGO_BOX, LOGO_PATHS } from '../config/buccLogo';
 import { sfx } from '../lib/sound';
 
-/**
- * Press-and-hold wax seal that replaces the submit button.
- *
- * - Pointer (mouse / touch / pen): the button is a plain blob of wax on the paper. Hold for
- *   `holdMs` while a ring fills around it; when the ring closes, a seal die slams down, flattens
- *   the blob into the stamped club-logo seal and lifts away, then `onComplete` fires. Letting go early
- *   cancels. A quick tap nudges the hint instead.
- * - Keyboard (Enter / Space while the seal itself is focused) and assistive tech (a click with no
- *   pointer): activates at once, because holding a key is a poor ask for people who rely on them.
- *   Enter inside the ID field does NOT submit (see the form in IdEntryScreen).
- * - `onBeforeHold` runs first and can veto (used to validate the ID so nobody holds for nothing).
- *
- * Progress is a CSS transition on an SVG ring, so no per-frame JS.
- */
 type Phase = 'idle' | 'holding' | 'done';
 
 interface Props {
   label: string;
   disabled?: boolean;
   holdMs?: number;
-  /** Return false to refuse the hold (e.g. the ID is invalid and an error is now showing). */
   onBeforeHold?: () => boolean;
   onComplete: () => void;
 }
@@ -44,7 +29,6 @@ const RING_R = 54;
 const SLAM_MS = 1300;
 const IMPACT = 0.37;
 
-/** Closed smooth path (quadratic through edge midpoints) around a ring of points. */
 function smoothClosed(pts: [number, number][]): string {
   const n = pts.length;
   const f = (v: number) => v.toFixed(1);
@@ -61,7 +45,6 @@ function smoothClosed(pts: [number, number][]): string {
   return `${d}Z`;
 }
 
-/** The pressed seal's edge: a ring of slightly uneven lobes, where the wax squeezed out. */
 function waxSeal(cx: number, cy: number, r: number, lobes: number): string {
   const n = lobes * 2;
   const pts: [number, number][] = [];
@@ -73,7 +56,6 @@ function waxSeal(cx: number, cy: number, r: number, lobes: number): string {
   return smoothClosed(pts);
 }
 
-/** The unpressed drop of wax: smaller, lumpy and lopsided, the way a melted blob settles. */
 function waxBlob(cx: number, cy: number, r: number): string {
   const n = 9;
   const pts: [number, number][] = [];
@@ -88,12 +70,10 @@ const SEAL_PATH = waxSeal(60, 60, 41, 9);
 const BLOB_PATH = waxBlob(59, 61, 29);
 const BLOB_DOME = waxBlob(58, 59, 22);
 
-/** Logo height inside the seal's inner ring (r = 33), in seal units. */
 const LOGO_H = 51;
 const LOGO_SCALE = LOGO_H / LOGO_BOX.h;
 const LOGO_TRANSFORM = `translate(60 60) scale(${LOGO_SCALE.toFixed(4)}) translate(${-(LOGO_BOX.x + LOGO_BOX.w / 2)} ${-(LOGO_BOX.y + LOGO_BOX.h / 2)})`;
 
-/** The logo centred in the seal; the parent <g> sets the colour. */
 function BuccMark() {
   return (
     <g transform={LOGO_TRANSFORM}>
@@ -143,12 +123,10 @@ export function WaxStamp({ label, disabled = false, holdMs = 850, onBeforeHold, 
   const finish = () => {
     window.clearTimeout(holdTimer.current);
     go('done');
-    // The buzz belongs to the moment the die lands, not the moment the ring closes.
     window.setTimeout(() => {
       vibrate([14, 40, 26]);
       sfx('stamp');
     }, SLAM_MS * IMPACT);
-    // Let the die land and lift before the screen changes.
     doneTimer.current = window.setTimeout(() => cbs.current.onComplete(), SLAM_MS + 80);
   };
 
@@ -196,7 +174,6 @@ export function WaxStamp({ label, disabled = false, holdMs = 850, onBeforeHold, 
     if (e.key === ' ') e.preventDefault(); // Firefox fires the click on keyup
   };
 
-  // A click that did not come from a real pointer press: screen readers, voice control.
   const onClick = (e: ReactMouseEvent<HTMLButtonElement>) => {
     if (e.detail === 0) instant();
   };
@@ -254,7 +231,6 @@ export function WaxStamp({ label, disabled = false, holdMs = 850, onBeforeHold, 
           <circle className="stamp-splash" cx="60" cy="60" r="44" />
           <circle className="stamp-splash stamp-splash-2" cx="60" cy="60" r="44" />
 
-          {/* 1. Before: only a blob of wax on the paper. */}
           <g className="stamp-blob">
             <path d={BLOB_PATH} fill="#2a0805" opacity="0.4" transform="translate(2 3.5)" />
             <path d={BLOB_PATH} fill="url(#blob-fill)" />
@@ -264,13 +240,11 @@ export function WaxStamp({ label, disabled = false, holdMs = 850, onBeforeHold, 
             <ellipse cx="72" cy="78" rx="9" ry="4" fill="#3d0904" opacity="0.28" transform="rotate(-28 72 78)" />
           </g>
 
-          {/* 2. After: the pressed seal with the club logo. Hidden until the die lands on it. */}
           <g className="stamp-seal">
             <path d={SEAL_PATH} fill="#3a0a06" opacity="0.35" transform="translate(1.5 2.5)" />
             <path d={SEAL_PATH} fill="url(#wax-fill)" />
             <circle cx="60" cy="60" r="34" fill="none" stroke="#000" strokeOpacity="0.28" strokeWidth="1.6" transform="translate(0.8 0.8)" />
             <circle cx="60" cy="60" r="34" fill="none" stroke="#ffb9a8" strokeOpacity="0.32" strokeWidth="1.4" />
-            {/* The club logo, pressed in: a dark shadow, a pale lip, then the dark relief on top. */}
             <g transform="translate(0.8 0.8)" fill="#000" opacity="0.4">
               <BuccMark />
             </g>
@@ -282,7 +256,6 @@ export function WaxStamp({ label, disabled = false, holdMs = 850, onBeforeHold, 
             </g>
           </g>
 
-          {/* 3. The seal die, seen from above: it falls toward you, lands, and lifts away. */}
           <g className="stamp-die">
             <circle className="stamp-die-shadow" cx="60" cy="60" r="58" fill="url(#die-shadow)" />
             <circle cx="60" cy="60" r="47" fill="url(#die-wood)" />

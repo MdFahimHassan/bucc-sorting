@@ -1,4 +1,3 @@
-/** Original wizard-hat silhouette (not any studio's artwork). Stroke inherits currentColor. */
 export function HatIcon({ className }: { className?: string }) {
   return (
     <svg

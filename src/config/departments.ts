@@ -1,24 +1,11 @@
-/**
- * THE ONE PLACE TO EDIT DEPARTMENT MAPPING.
- *
- * - `id` is what the `dept` column in data/participants.csv must contain.
- * - `groupChatUrl`: replace each [PLACEHOLDER] with the real invite link
- *   before the event. While it still contains "PLACEHOLDER", the card hides the button.
- */
 export interface Department {
   id: string;
   name: string;
-  /** The animal, e.g. "Stag". */
   patronus: string;
-  /** Whose patronus it is, e.g. "Harry’s". Reads as "Harry’s Stag". */
   bearer: string;
-  /** Glow colour used in the reveal, card and share image. */
   accent: string;
-  /** One line, in the Sorting Hat's voice. */
   flavor: string;
-  /** Short line the Hat says mid-sort, between "Plenty of courage" and "I know just the place". */
   sortingLine: string;
-  /** Two lines on what the department does. */
   description: [string, string];
   groupChatUrl: string;
 }
@@ -130,7 +117,6 @@ export function getDepartment(id: string): Department | undefined {
   return DEPARTMENTS.find((d) => d.id === id);
 }
 
-/** "Harry’s Stag" */
 export function patronusLabel(d: Department): string {
   return `${d.bearer} ${d.patronus}`;
 }
@@ -139,11 +125,6 @@ export function hasGroupChat(d: Department): boolean {
   return /^https?:\/\//i.test(d.groupChatUrl) && !d.groupChatUrl.includes('PLACEHOLDER');
 }
 
-/**
- * Student ID format: 8 digits (e.g. 24201036) or 10 digits (e.g. 1000054460).
- * Change this regex (and the hint copy in the ID screen) if your IDs differ.
- * Used by the client for friendly validation; build-data.ts only requires non-empty.
- */
 export const STUDENT_ID_PATTERN = /^(\d{8}|\d{10})$/;
 export const STUDENT_ID_EXAMPLE = '26301234';
 

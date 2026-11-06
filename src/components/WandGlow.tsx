@@ -1,10 +1,5 @@
 import { useEffect, useRef } from 'react';
 
-/**
- * The wand tip: a flickering warm glow that eases toward the pointer.
- * Position is written straight to the element transform (no React state per frame).
- * Structure: outer follows the pointer, .ignite is animated by GSAP, halo/core flicker in CSS.
- */
 export function WandGlow() {
   const outer = useRef<HTMLDivElement>(null);
 

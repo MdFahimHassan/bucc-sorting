@@ -1,4 +1,3 @@
-/** Words that ink in one after another. Opacity + tiny transform only. */
 export function InkText({
   text,
   className,

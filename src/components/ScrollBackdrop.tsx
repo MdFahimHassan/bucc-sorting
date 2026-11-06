@@ -2,15 +2,7 @@ import { useEffect, useMemo } from 'react';
 import { isCompactDevice } from '../lib/motion';
 import { mulberry } from './EnchantedBackdrop';
 
-/**
- * Backdrop for the ID (scroll) screen: deliberately quiet so the parchment is the only focus.
- * A warm candlelit dark, a soft glow behind the sheet, drifting embers and a vignette.
- * No sky, moon or castle: those belong to the landing scene. Transform/opacity animations only.
- *
- * The app-wide glow orbs (the particle canvas) normally draw above every screen. Here they must pass
- * BEHIND the parchment, so while this screen is mounted the page background moves to <html>, the screen
- * goes transparent and the canvas drops below the screen's content layer (see `.on-scroll` in the CSS).
- */
+/** While mounted, the particle canvas is moved behind the parchment (see `.on-scroll` in index.css). */
 
 interface Ember {
   left: number;

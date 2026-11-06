@@ -1,78 +1,190 @@
-# The Sorting Ceremony | BUCC Fall 26
+# The Sorting Ceremony
 
-An interactive department-placement experience for the BRAC University Computer Club (BUCC)
-Fall 2026 new-member orientation. Freshers scan a QR code, enter their student ID, watch the
-Sorting Hat deliberate, and are revealed to one of seven departments, each represented by a Patronus.
+An interactive department-placement experience for the BRAC University Computer Club (BUCC) Fall 2026
+new-member orientation. Attendees scan a QR code, enter their student ID, watch the Sorting Hat deliberate,
+and are revealed to one of seven departments.
 
-## The experience
+It is a fully static, client-side site: no backend, no database and no analytics.
 
-1. **Title scene.** A castle at dusk with a wand-light trail that follows your finger or cursor. Tap to enter.
-2. **Owl and scroll.** The camera pans after an owl that drops a rolled scroll, the red string comes off and
-   it unrolls into parchment. The oath inks in and you type your student ID.
-3. **Wax seal.** Press and hold the seal (or press Enter). The scroll rolls shut, there is a flash of light,
-   and the screen goes dark.
-4. **The Sorting.** Out of the dark the Sorting Hat drops in over a ring of the seven department crests and
-   speaks line by line. A heartbeat quickens with the tension while the lookup runs underneath.
-5. **The reveal.** The ring spins down, the light steps from crest to crest and lands on yours. The other six
-   crack and fall away, and your crest travels to the centre. Then comes a burst in the department colour
-   and your name written out letter by letter.
-6. **Your card.** Department, Patronus, a short description, and buttons to save a shareable card, join the
+## Table of contents
+
+- [Experience](#experience)
+- [Features](#features)
+- [Tech stack](#tech-stack)
+- [Getting started](#getting-started)
+- [Participant data](#participant-data)
+- [Deployment](#deployment)
+- [Configuration](#configuration)
+- [Testing](#testing)
+- [Event-day checklist](#event-day-checklist)
+- [Credits](#credits)
+- [Disclaimer](#disclaimer)
+
+## Experience
+
+1. **Title scene.** A castle at dusk with a wand-light trail that follows the pointer. Tap to enter.
+2. **Owl and scroll.** The camera follows an owl that drops a rolled scroll. The red string comes off, the scroll
+   unrolls into parchment, and the attendee types their student ID.
+3. **Wax seal.** Press and hold the seal to submit. Keyboard users focus the seal and press Enter or Space, which
+   activates it immediately. Pressing Enter inside the ID field does not submit. The scroll rolls shut and the
+   screen goes dark.
+4. **The Sorting.** The Sorting Hat drops in over a ring of the seven department crests and speaks line by line
+   while the lookup runs underneath.
+5. **The reveal.** The ring spins down, the light steps from crest to crest and lands on the chosen one, the other
+   six crack and fall away, and the crest moves to the centre followed by the attendee's name.
+6. **The card.** Department, Patronus, a short description, and actions to save a shareable image, join the
    department group chat, replay the ceremony, or try another ID.
 
-If the ID is not on the list the Hat says so, and a Prefect (volunteer) can help.
+If an ID is not on the list, the Hat says so and a volunteer can help.
 
-## Highlights
+## Features
 
-- **Cinematic reveal:** all built with GSAP, the Web Animations API and a custom canvas particle engine
-  (no Three.js). Screen changes are real transitions: a camera pan, a dusk fade and a dip to black on replay.
-- **Seven departments, seven Patronuses:** Communication and Marketing (Phoenix), Creative (Tabby Cat), Event Management
-  (Hare), Finance (Horse), Human Resources (Otter), Press Release and Publications (Stag), and Research and
-  Development (Doe). Each has its own crest, accent colour, Hat line and description. All of it lives in
-  `src/config/departments.ts`.
-- **Shareable card:** generates a 1080x1920 PNG for Instagram stories. It tries the native share sheet first
-  (with the image attached) and falls back to a download plus a preview you can press and hold to save,
-  which also works in in-app browsers. The card generator is lazy-loaded.
-- **Forgiving ID entry:** accepts 8 or 10 digit student IDs. Spaces, dashes and underscores are ignored, and
-  Bangla, Arabic-Indic and full-width digits are converted, so typing on a Bangla keyboard works.
-  Friendly validation messages are shown before any lookup happens.
-- **Guess protection:** three wrong IDs in a row pause the form for a few seconds.
-- **Replay:** run the full ceremony again on the same result without a second lookup.
-- **No backend:** a static site (Cloudflare Pages or Vercel). No database, no analytics, no tracking.
-- **Private participant data:** the list ships as encrypted data only. Lookup keys are
-  SHA-256 hashes, and each record is AES-GCM encrypted with a PBKDF2-derived key from the student ID.
-  No names, IDs or departments exist in plaintext in the deployed bundle. The real CSV is gitignored and
-  never deployed.
-- **Installable and offline-friendly (PWA):** a service worker precaches the app (scripts, styles, fonts, crests).
-  `index.html` and `data.json` are fetched network-first with a 3 second timeout, so visitors never get a stale
-  page or a stale participant list, and the cached copy is only an offline fallback. A new version takes over
-  and reloads the page once.
-- **Sound (off by default):** looping background music plus a sound for each beat of the ceremony
-  (owl wings, rope, parchment, quill, wax stamp, heartbeat, cracking crests, reveal chime). Nothing is
-  downloaded until someone taps the speaker button. The effects total ~230 KB and are cached for offline use;
-  the music (~1.3 MB) streams. Mix levels are in one table at the top of `src/lib/audio.ts`.
-- **Mobile-first and light:** lazy-loaded share-card and audio modules, a particle cap with FPS-based
-  auto-reduction, and a lighter particle budget on phones and small tablets.
-- **Accessible:** `prefers-reduced-motion` turns every transition into a short plain crossfade. There are
-  live-region result announcements, visible focus states, 44px touch targets, and an error boundary that
-  still shows the person's name, department and Patronus as plain text if animation fails.
+- **Departments.** Seven departments, each with its own crest, accent colour, Patronus, Hat line and description:
+  Communication and Marketing (Phoenix), Creative (Tabby Cat), Event Management (Hare), Finance (Horse),
+  Human Resources (Otter), Press Release and Publications (Stag), and Research and Development (Doe).
+  All of it is defined in `src/config/departments.ts`.
+- **Animation.** GSAP, the Web Animations API and a custom canvas particle engine, with no 3D library.
+  Screen changes are real transitions: a camera pan, a dusk fade, and a dip to black on replay.
+- **Shareable card.** Generates a 1080x1920 PNG for stories. It tries the native share sheet first and falls
+  back to a download with a press-and-hold preview that also works in in-app browsers. The generator is
+  lazy-loaded.
+- **Forgiving ID entry.** Accepts 8 or 10 digit IDs. Spaces, dashes and underscores are ignored, and Bangla,
+  Arabic-Indic and full-width digits are converted. Validation messages appear before any lookup.
+- **Guess protection.** Three wrong IDs in a row pause the form for a few seconds.
+- **Replay.** Runs the full ceremony again on the same result without a second lookup.
+- **Private participant data.** The deployed list is encrypted. Each record is AES-GCM encrypted, and both its
+  lookup key and encryption key are derived from the student ID through PBKDF2 (100,000 iterations, SHA-256)
+  followed by HKDF. Offline guessing therefore costs one full PBKDF2 run per attempt. No names, IDs or departments
+  exist in plaintext in the deployed bundle, and the source CSV is gitignored.
+- **Installable PWA.** A service worker precaches scripts, styles, fonts and images. `index.html` and `data.json`
+  are fetched network-first with a 3 second timeout, so visitors never see a stale page or participant list.
+  A new version takes over and reloads the page once.
+- **Sound (off by default).** Background music plus a sound for each beat of the ceremony. Nothing is downloaded
+  until the speaker button is tapped. The effects (about 230 KB) are cached for offline use and the music
+  (about 1.3 MB) streams. Mix levels are defined in `src/lib/audio.ts`.
+- **Performance.** Lazy-loaded share-card and audio modules, a particle cap that shrinks when frame rate drops,
+  a lighter particle budget on phones, and a "lite" mode that disables decorative infinite animations on
+  low-end devices (force it with `?lite=1` or disable it with `?lite=0`).
+- **Accessibility.** `prefers-reduced-motion` turns every transition into a short crossfade. The app provides
+  live-region result announcements, visible focus states, 44px touch targets, and an error boundary that shows
+  the result as plain text if animation fails.
 
 ## Tech stack
 
-Vite, React 19, TypeScript (strict), Tailwind CSS 4, GSAP, vite-plugin-pwa, Vitest. Data tooling runs on `tsx`;
-the asset scripts in `scripts/` use Python.
-Self-hosted Cinzel, Cinzel Decorative and IM Fell English (SIL OFL).
+| Area | Tools |
+|---|---|
+| App | React 19, TypeScript (strict), Vite |
+| Styling | Tailwind CSS 4 and hand-written CSS |
+| Animation | GSAP, Web Animations API, canvas |
+| PWA | vite-plugin-pwa |
+| Testing | Vitest |
+| Tooling | `tsx` for data scripts, Python for asset generation |
+| Fonts | Cinzel, Cinzel Decorative, IM Fell English (SIL OFL), self-hosted |
+
+## Getting started
+
+Requires Node.js 20 or later.
+
+    npm install
+    npm run dev
+
+| Command | Purpose |
+|---|---|
+| `npm run dev` | Start the development server |
+| `npm run build` | Build the encrypted data, type-check, and produce `dist/` |
+| `npm run build:data` | Build `public/data.json` from the participant CSV |
+| `npm run preview` | Serve the production build locally |
+| `npm test` | Run the test suite |
+| `npm run typecheck` | Type-check without emitting |
+
+If `data/participants.csv` is missing, the data build falls back to `data/participants.sample.csv` and prints a
+warning. That sample file is not included in this repository, so create one or provide the real CSV before
+building. Never deploy a sample build to attendees.
+
+## Participant data
+
+The real list lives in `data/participants.csv`, which is gitignored:
+
+    id,name,dept
+    23301206,Nishat Anjuman Dola,creative
+
+- `id`: the student ID as plain digits (no `.0` suffix from Excel).
+- `name`: shown on the card exactly as written.
+- `dept`: one of `comms`, `creative`, `events`, `finance`, `hr`, `press`, `rnd`.
+
+To convert the club's member spreadsheet instead of typing the list by hand:
+
+    pip install openpyxl
+    python3 scripts/xlsx-to-csv.py "members.xlsx"
+
+The script expects the columns "Student Id", "Name" and "Department", fixes Excel's `22301342.0` IDs, maps
+department names to ids, and refuses to write anything if a row is incomplete, a department is unknown, or an
+ID appears twice.
+
+Then build the encrypted list:
+
+    npm run build:data
+
+This validates the CSV (duplicate IDs even when formatted differently, unknown departments, empty cells), writes
+`public/data.json`, and prints the participant count per department. `npm run build` runs it automatically.
+Use `--strict` (or `CI=1`) to refuse the sample fallback.
+
+**Late additions or fixes:** edit the CSV, run `npm run build:data`, and redeploy with the new `public/data.json`.
+
+## Deployment
+
+The output is a static site in `dist/`. Caching headers are defined in `public/_headers` (Cloudflare Pages) and
+`vercel.json` (Vercel). `data.json`, `index.html`, `sw.js` and the manifest are served with `no-cache`; hashed
+assets are immutable for a year.
+
+- **Cloudflare Pages:** run `npm run build` locally or in CI with the CSV available, then deploy `dist/`.
+- **Vercel:** the CSV is deliberately not in the repository. Build `data.json` locally, commit
+  `public/data.json`, and push. The Vercel build uses the committed file after verifying it is a valid,
+  current-format encrypted list. Keep the repository private.
+
+If `data.json` is in an outdated format, the app rejects it with a clear error instead of reporting "not
+found" to everyone. Rebuild it with `npm run build:data`.
+
+## Configuration
+
+| What | Where |
+|---|---|
+| Departments, Patronus names, Hat lines, descriptions, colours | `src/config/departments.ts` |
+| Student ID format | `STUDENT_ID_PATTERN` in `src/config/departments.ts` (8 or 10 digits) |
+| Group chat links | `groupChatUrl` per department; while a value contains `PLACEHOLDER` the button is hidden |
+| Event name and title | `EVENT` in `src/config/departments.ts`, `index.html`, and the manifest in `vite.config.ts` |
+| Timings and transitions | `src/lib/motion.ts`, `src/styles/transitions.css` |
+| Sound mix | `src/lib/audio.ts` |
+| Wrong-ID pause | `WRONG_TRIES_BEFORE_PAUSE` and `PAUSE_MS` in `src/App.tsx` |
+
+Art and audio can be regenerated with the scripts in `scripts/` (`make-crests.py`, `make-patronuses.py`,
+`make-scroll.py`, `make-title-font.py`, `make-audio.py`). Their outputs are committed, so the site build does not
+require Python.
+
+## Testing
+
+`npm test` runs Vitest. The suite covers ID normalisation, the encrypt and decrypt round trip, messy and Bangla
+input, tampered ciphertext failing closed, a fresh IV per record, batched dataset builds, the guarantee that no
+plaintext names, IDs or departments ship in `data.json`, and the CSV validation rules.
+
+## Event-day checklist
+
+1. Set the real `groupChatUrl` for every department.
+2. Build from the real CSV (no sample warning) and confirm the per-department counts.
+3. Deploy, then open the live site on a phone and look up several real IDs, including a 10-digit one.
+4. Confirm an unknown ID shows the "cannot find you" screen.
+5. Test card saving and sharing on iOS and Android, including Instagram and Messenger in-app browsers.
+6. Print the QR code and brief volunteers on how to handle IDs missing from the list.
+7. For a missing attendee, add them to the CSV, run `npm run build:data`, and redeploy.
 
 ## Credits
 
-Intro title font: "Harry P" by Phoenix Phonts & GeM (Freeware, via fontspace.com), subset to Basic Latin
-with `scripts/make-title-font.py`.
+**Title font:** "Harry P" by Phoenix Phonts & GeM (Freeware), subset to Basic Latin with
+`scripts/make-title-font.py`.
 
-## Sound credits
-
-All sounds are from [Pixabay](https://pixabay.com) under the
-[Pixabay Content License](https://pixabay.com/service/license-summary/) (free to use, no attribution
-required; credited here anyway). They were trimmed, level-matched and re-encoded with
-`scripts/make-audio.py`; the originals are not in the repo.
+**Sound:** all sounds are from [Pixabay](https://pixabay.com) under the
+[Pixabay Content License](https://pixabay.com/service/license-summary/). They were trimmed, level-matched and
+re-encoded with `scripts/make-audio.py`; the originals are not in the repository.
 
 | Use | Sound | By |
 |---|---|---|
@@ -89,95 +201,7 @@ required; credited here anyway). They were trimmed, level-matched and re-encoded
 | String coming off | "Rope & Leather Tension" | Alex (OxidVideos) |
 | Hat landing | "Magic Glitter Wand 5" | Robert Gacek (FxProSound) |
 
-## Quality
-
-Lighthouse (mobile, production build): Performance 98, Accessibility 100, Best Practices 100.
-
-## Quick start
-
-    npm install
-    npm run dev
-    npm test
-
-Without `data/participants.csv` the build falls back to `data/participants.sample.csv` and prints a loud
-warning. Never deploy a sample build to students.
-
-## Participant data
-
-The real list lives in `data/participants.csv` (gitignored). Header and columns:
-
-    id,name,dept
-    23301206,Nishat Anjuman Dola,creative
-
-- `id` is the student ID as plain digits (no `.0` from Excel).
-- `name` is shown on the card exactly as written.
-- `dept` is one of `comms`, `creative`, `events`, `finance`, `hr`, `press`, `rnd`, in lowercase.
-
-Convert the club's member spreadsheet instead of typing it by hand:
-
-    pip install openpyxl
-    python3 scripts/xlsx-to-csv.py "members.xlsx"
-
-It expects the columns "Student Id", "Name" and "Department", fixes Excel's `22301342.0` IDs, maps full
-department names to ids, and refuses to write anything if a row is incomplete, a department is unknown, or an
-ID appears twice.
-
-Then build the encrypted list:
-
-    npm run build:data
-
-This validates the CSV (duplicate IDs, even when formatted differently, unknown departments, empty cells),
-writes `public/data.json` and prints the participant count per department. `npm run build` runs it
-automatically first. Use `--strict` (or `CI=1`) to refuse the sample fallback.
-
-**Adding or fixing someone late:** edit the CSV, run `npm run build:data`, then redeploy with the new
-`public/data.json`. See below for how each host picks it up.
-
-## Deployment
-
-The output is a static site (`dist/`). Caching headers are in `public/_headers` (Cloudflare Pages) and
-`vercel.json` (Vercel). `data.json`, `index.html`, `sw.js` and the manifest are `no-cache`; hashed assets
-are immutable for a year.
-
-- **Cloudflare Pages:** build locally or in CI with the CSV available (`npm run build`), then deploy `dist/`.
-- **Vercel:** the CSV is deliberately not in the repo. Build `data.json` locally, **commit `public/data.json`**,
-  and push. On Vercel the build uses that committed file after checking it is a valid, current-format
-  encrypted list.
-
-If `data.json` is in an old format, the app refuses it with a clear error instead of telling everyone
-"not found". Rebuild it with `npm run build:data`.
-
-## Customising
-
-- **Departments, Patronus names, Hat lines, descriptions, colours, ID format:** `src/config/departments.ts`.
-  The ID format check is `STUDENT_ID_PATTERN` (8 or 10 digits today).
-- **Group chat buttons:** set each `groupChatUrl` in `departments.ts`. While it still contains `PLACEHOLDER`
-  the button is hidden.
-- **Event name and title:** the `EVENT` object in `departments.ts`, plus `index.html` and the manifest in
-  `vite.config.ts`.
-- **Timings and transitions:** `src/lib/motion.ts` and `src/styles/transitions.css`.
-- **Sound mix:** `src/lib/audio.ts`.
-- **Wrong-ID pause:** `WRONG_TRIES_BEFORE_PAUSE` and `PAUSE_MS` in `src/App.tsx`.
-- **Regenerating art and audio:** `scripts/make-crests.py`, `make-patronuses.py`, `make-scroll.py`,
-  `make-title-font.py` and `make-audio.py`. Their outputs are committed, so the site build never needs Python.
-
-## Tests
-
-`npm test` runs Vitest. It covers ID normalisation, the encrypt and decrypt round trip, messy and Bangla
-input, tampered ciphertext failing closed, the guarantee that no plaintext names, IDs or departments ship in
-`data.json`, and the CSV validation rules.
-
-## Event-day checklist
-
-1. Fill in the real `groupChatUrl` for every department.
-2. Build from the real CSV (no sample warning) and check the per-department counts look right.
-3. Deploy, then open the live site on a phone and look up a few real IDs, including a 10-digit one.
-4. Check an unknown ID shows the "cannot find you" screen.
-5. Test the card save or share on both iOS and Android, and inside Instagram or Messenger's in-app browser.
-6. Print the QR code and leave the Prefects (volunteers) a plan for IDs that are missing from the list.
-7. If someone is missing, add them to the CSV, run `npm run build:data` and redeploy.
-
 ## Disclaimer
 
-An unofficial fan-themed student club project. It is not affiliated with or endorsed by
-Warner Bros. Discovery or the Wizarding World. All artwork is original.
+An unofficial, fan-themed student club project. It is not affiliated with or endorsed by Warner Bros. Discovery
+or the Wizarding World. All artwork is original.

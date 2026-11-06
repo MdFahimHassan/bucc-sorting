@@ -1,7 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { getDepartment, patronusLabel } from '../config/departments';
 
-/** Last successful lookup, readable even if React itself crashes. */
 const lastResult: { name: string | null; dept: string | null } = { name: null, dept: null };
 
 export function rememberResult(name: string, dept: string): void {
@@ -13,7 +12,6 @@ interface State {
   failed: boolean;
 }
 
-/** If rendering ever throws, show the answer in plain text instead of a blank screen. */
 export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
   state: State = { failed: false };
   static getDerivedStateFromError(): State {

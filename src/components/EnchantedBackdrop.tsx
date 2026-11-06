@@ -2,13 +2,6 @@ import { useMemo, type ReactNode } from 'react';
 import { isCompactDevice } from '../lib/motion';
 import { CastleScene } from './CastleScene';
 
-/**
- * The Great Hall at night, built only from transform/opacity animations:
- * star layers (box-shadow dots, one element each), a moon with slow light shafts and
- * drifting dust, an owl that crosses the moon now and then, mist and a layered castle on a crag above a lake.
- * No canvas, no blur filters, no images.
- */
-
 /** Small seeded PRNG so server/client and re-renders always agree. */
 export function mulberry(seed: number) {
   return () => {
@@ -38,13 +31,12 @@ interface Mote {
   peak: number;
 }
 
-/** Tiny dust specks that drift up through the moonlight. */
 function makeMotes(n: number): Mote[] {
   const r = mulberry(5);
   const list: Mote[] = [];
   for (let i = 0; i < n; i++) {
     list.push({
-      left: 28 + r() * 44, // inside the soft middle of the shaft
+      left: 28 + r() * 44,
       top: 8 + r() * 78,
       size: 1.5 + r() * 2,
       dur: 14 + r() * 14,
@@ -57,13 +49,7 @@ function makeMotes(n: number): Mote[] {
 }
 
 interface BackdropProps {
-  /**
-   * 'intro' is the full Great Hall scene (moon, shafts, owl, castle).
-   * 'ceremony' keeps only the quiet parts (sky, stars, mist) so the Patronus reveal stays the
-   * brightest thing on screen, and pins itself to the viewport instead of the page height.
-   */
   variant?: 'intro' | 'ceremony';
-  /** Extra layers drawn on top of the sky (used by the ceremony: candles, colour wash, vignette). */
   children?: ReactNode;
 }
 
@@ -85,13 +71,11 @@ export function EnchantedBackdrop({ variant = 'intro', children }: BackdropProps
 
       {full && (
         <>
-          {/* Moon, with a faint halo. */}
           <div className="bd-moon">
             <div className="bd-moon-halo" />
             <div className="bd-moon-disc" />
           </div>
 
-          {/* Moonlight shafts falling toward the castle, with dust drifting inside them. */}
           <div className="bd-shafts">
             {shafts.map((cls, si) => (
               <div key={cls} className={`bd-shaft ${cls}`}>
@@ -122,19 +106,16 @@ export function EnchantedBackdrop({ variant = 'intro', children }: BackdropProps
 
       {full && (
         <>
-          {/* An owl crosses the moon every so often. */}
           <div className="bd-owl">
             <div className="bd-owl-bob">
               <svg viewBox="0 0 64 44" width="100%" height="100%">
                 <g fill="#04050c">
-                  {/* rounded, feathered wings; they flap by scaling Y from the shoulder */}
                   <g className="bd-wing">
                     <path d="M27 22C20 12 10 9 2 15c3 1 5 3 5 6 3 0 5 2 5 5 3 0 5 1 6 4 4 0 7-1 9-3z" />
                   </g>
                   <g className="bd-wing">
                     <path d="M37 22c7-10 17-13 25-7-3 1-5 3-5 6-3 0-5 2-5 5-3 0-5 1-6 4-4 0-7-1-9-3z" />
                   </g>
-                  {/* short tail, plump body, round head, ear tufts */}
                   <path d="M28 36h8l-1 7h-6z" />
                   <ellipse cx="32" cy="27" rx="8.5" ry="11.5" />
                   <circle cx="32" cy="15" r="8" />

@@ -1,16 +1,10 @@
 import { useMemo } from 'react';
 import { mulberry } from './EnchantedBackdrop';
 
-/**
- * The castle on its crag, drawn as layered SVG so it reads as depth rather than one flat shape:
- * far ridge (hazy) -> pines -> castle (moon-lit on the right edges) -> cliff -> lake with reflection.
- * Only opacity/transform are animated (window glow, water shimmer), like the rest of the backdrop.
- */
-
 const WALL = 'url(#cs-wall)';
 const ROOF = 'url(#cs-roof)';
 const RIM = '#8aa0e6';
-const BASE_Y = 112; // where the crag meets the lake
+const BASE_Y = 112;
 
 interface Win {
   x: number;
@@ -19,21 +13,18 @@ interface Win {
   h: number;
 }
 
-/** A pointed (lancet) window path. */
 const lancet = ({ x, y, w, h }: Win) =>
   `M${x} ${y + h}V${y + w / 2}a${w / 2} ${w / 2} 0 0 1 ${w} 0V${y + h}z`;
 
-/** Conical roof with a slight concave flare, like a witch-hat spire. */
 function Spire({ x, w, y, h, flag = false }: { x: number; w: number; y: number; h: number; flag?: boolean }) {
   const cx = x + w / 2;
-  const o = 1.8; // eave overhang
+  const o = 1.8;
   return (
     <g>
       <path
         d={`M${x - o} ${y}Q${cx - w * 0.12} ${y - h * 0.55} ${cx} ${y - h}Q${cx + w * 0.12} ${y - h * 0.55} ${x + w + o} ${y}z`}
         fill={ROOF}
       />
-      {/* moon-side edge of the roof */}
       <path
         d={`M${cx} ${y - h}Q${cx + w * 0.12} ${y - h * 0.55} ${x + w + o} ${y}`}
         stroke={RIM}
@@ -47,7 +38,6 @@ function Spire({ x, w, y, h, flag = false }: { x: number; w: number; y: number; 
   );
 }
 
-/** Crenellated parapet along a wall top. */
 function Battlements({ x1, x2, y }: { x1: number; x2: number; y: number }) {
   const n = Math.max(2, Math.round((x2 - x1) / 4.2));
   const step = (x2 - x1) / n;
@@ -56,7 +46,6 @@ function Battlements({ x1, x2, y }: { x1: number; x2: number; y: number }) {
   return <path d={d.join('')} fill={WALL} />;
 }
 
-/** Slim tower: shaft, a corbelled lip, optional spire, rim light on the right edge. */
 function Tower({
   x,
   w,
@@ -80,7 +69,6 @@ function Tower({
   );
 }
 
-/** A lit window: glow halo + pane + mullion. Groups flicker independently. */
 function Glow({ win, cls }: { win: Win; cls: string }) {
   const cx = win.x + win.w / 2;
   const cy = win.y + win.h / 2;
@@ -93,7 +81,6 @@ function Glow({ win, cls }: { win: Win; cls: string }) {
   );
 }
 
-/** Row of pine silhouettes. */
 function Pines({ from, to, seed, base, fill, hMin, hMax }: { from: number; to: number; seed: number; base: number; fill: string; hMin: number; hMax: number }) {
   const d = useMemo(() => {
     const r = mulberry(seed);
@@ -101,7 +88,6 @@ function Pines({ from, to, seed, base, fill, hMin, hMax }: { from: number; to: n
     for (let x = from; x < to; x += 3 + r() * 4) {
       const h = hMin + r() * (hMax - hMin);
       const w = h * 0.34;
-      // three stacked tiers
       out.push(
         `M${(x - w).toFixed(1)} ${base}L${x.toFixed(1)} ${(base - h).toFixed(1)}L${(x + w).toFixed(1)} ${base}z`,
         `M${(x - w * 0.78).toFixed(1)} ${(base - h * 0.35).toFixed(1)}h${(w * 1.56).toFixed(1)}`,
@@ -113,19 +99,15 @@ function Pines({ from, to, seed, base, fill, hMin, hMax }: { from: number; to: n
 }
 
 const WINDOWS: Array<{ win: Win; cls: string }> = [
-  // great tower
   { win: { x: 198.6, y: 50, w: 3.2, h: 7 }, cls: '' },
   { win: { x: 198.6, y: 62, w: 2.6, h: 5.5 }, cls: 'w3' },
-  // left tower cluster
   { win: { x: 126.4, y: 62, w: 3, h: 6.5 }, cls: 'w2' },
   { win: { x: 126.4, y: 78, w: 3, h: 6.5 }, cls: '' },
   { win: { x: 98.6, y: 80, w: 2.8, h: 6 }, cls: 'w3' },
   { win: { x: 70.5, y: 90, w: 2.8, h: 6 }, cls: '' },
-  // great hall: tall buttressed lancets
   { win: { x: 163, y: 72, w: 3.6, h: 12 }, cls: 'w2' },
   { win: { x: 172, y: 72, w: 3.6, h: 12 }, cls: '' },
   { win: { x: 181, y: 72, w: 3.6, h: 12 }, cls: 'w3' },
-  // keep
   { win: { x: 207, y: 74, w: 3, h: 7 }, cls: 'w2' },
   { win: { x: 217, y: 74, w: 3, h: 7 }, cls: '' },
   { win: { x: 227, y: 74, w: 3, h: 7 }, cls: 'w3' },
@@ -133,18 +115,15 @@ const WINDOWS: Array<{ win: Win; cls: string }> = [
   { win: { x: 207, y: 90, w: 3, h: 7 }, cls: 'w3' },
   { win: { x: 227, y: 90, w: 3, h: 7 }, cls: '' },
   { win: { x: 195, y: 92, w: 3, h: 7 }, cls: 'w2' },
-  // right towers
   { win: { x: 270.4, y: 58, w: 3, h: 6.5 }, cls: '' },
   { win: { x: 270.4, y: 76, w: 3, h: 6.5 }, cls: 'w3' },
   { win: { x: 298.6, y: 80, w: 2.8, h: 6 }, cls: 'w2' },
   { win: { x: 328.2, y: 92, w: 2.8, h: 6 }, cls: '' },
-  // west wing tower
   { win: { x: 150, y: 70, w: 2.8, h: 6 }, cls: 'w3' },
   { win: { x: 150, y: 90, w: 2.8, h: 6 }, cls: '' },
 ];
 
 export function CastleScene({ compact }: { compact: boolean }) {
-  // Shimmer streaks on the lake.
   const streaks = useMemo(() => {
     const r = mulberry(77);
     return Array.from({ length: compact ? 5 : 9 }, (_, i) => ({
@@ -159,10 +138,8 @@ export function CastleScene({ compact }: { compact: boolean }) {
 
   const castle = (
     <g>
-      {/* ---- west wing: low curtain wall + bridge ---- */}
       <rect x="54" y="84" width="76" height={BASE_Y + 4 - 84} fill={WALL} />
       <Battlements x1={54} x2={130} y={84} />
-      {/* viaduct with arches */}
       <path
         d="M20 98H66V116H20zM26 116V108a5 5 0 0 1 10 0V116M40 116V108a5 5 0 0 1 10 0V116M54 116V108a5 5 0 0 1 10 0V116"
         fill={WALL}
@@ -174,7 +151,6 @@ export function CastleScene({ compact }: { compact: boolean }) {
       <Tower x={118} w={20} top={52} roof={30} flag />
       <Tower x={146} w={16} top={62} roof={20} />
 
-      {/* ---- great hall with buttresses ---- */}
       <rect x="160" y="64" width="30" height={BASE_Y + 4 - 64} fill={WALL} />
       <path d="M160 64L175 52L190 64z" fill={ROOF} />
       <path d="M175 52L190 64" stroke={RIM} strokeWidth=".55" opacity=".5" />
@@ -182,18 +158,14 @@ export function CastleScene({ compact }: { compact: boolean }) {
         <path key={bx} d={`M${bx} 70L${bx + 1.6} 70L${bx + 2.6} ${BASE_Y}H${bx - 1}z`} fill={WALL} />
       ))}
 
-      {/* ---- main keep ---- */}
       <rect x="192" y="60" width="62" height={BASE_Y + 4 - 60} fill={WALL} />
       <Battlements x1={192} x2={254} y={60} />
       <rect x="200" y="50" width="42" height="11" fill={WALL} />
       <Battlements x1={200} x2={242} y={50} />
-      {/* great tower with tall spire */}
       <Tower x={196} w={26} top={42} roof={30} flag />
-      {/* clock-tower style side turret */}
       <Tower x={236} w={14} top={44} roof={18} />
       <Tower x={252} w={10} top={66} roof={12} />
 
-      {/* ---- east wing ---- */}
       <rect x="262" y="82" width="66" height={BASE_Y + 4 - 82} fill={WALL} />
       <Battlements x1={262} x2={328} y={82} />
       <Tower x={264} w={20} top={46} roof={30} />
@@ -202,7 +174,6 @@ export function CastleScene({ compact }: { compact: boolean }) {
       <rect x="338" y="100" width="40" height="16" fill={WALL} />
       <Battlements x1={338} x2={378} y={100} />
 
-      {/* windows */}
       {WINDOWS.map((w, i) => (
         <Glow key={i} win={w.win} cls={w.cls} />
       ))}
@@ -212,7 +183,6 @@ export function CastleScene({ compact }: { compact: boolean }) {
   return (
     <svg className="bd-castle" viewBox="0 0 400 150" preserveAspectRatio="xMidYMax meet">
       <defs>
-        {/* moon-lit tops fading to dark at the base */}
         <linearGradient id="cs-wall" gradientUnits="userSpaceOnUse" x1="0" y1="20" x2="0" y2={BASE_Y}>
           <stop offset="0" stopColor="#1b2548" />
           <stop offset="0.55" stopColor="#0f1530" />
@@ -251,7 +221,6 @@ export function CastleScene({ compact }: { compact: boolean }) {
         </pattern>
       </defs>
 
-      {/* far ridge, hazy */}
       <path
         d="M-700 130V98C-560 90-430 100-300 92S-120 86 0 94C60 80 100 84 140 78S250 72 300 80C350 70 400 82 470 90C600 82 800 98 1100 92V130z"
         fill="url(#cs-far)"
@@ -264,25 +233,20 @@ export function CastleScene({ compact }: { compact: boolean }) {
       <Pines from={-60} to={70} seed={3} base={BASE_Y} fill="#070a17" hMin={10} hMax={22} />
       <Pines from={350} to={470} seed={9} base={BASE_Y} fill="#070a17" hMin={10} hMax={22} />
 
-      {/* castle */}
       {castle}
 
-      {/* crag the castle stands on: jagged, with a lit edge toward the moon */}
       <path
         d="M-700 118V108L20 106l12-4 10 3 14-5 16 4 18-3 20 2 20-1 24 1 30-2 28 2 26-1 22 2 24-3 16 3 20-4 14 4 22-2 18 3 24 1H1100V124z"
         fill="#06080f"
       />
-      {/* mist clinging to the foot of the crag */}
       <rect x="-700" y={BASE_Y - 10} width="1800" height="14" fill="url(#cs-haze)" />
 
-      {/* lake */}
       <rect x="-700" y={BASE_Y + 1} width="1800" height="40" fill="url(#cs-water)" />
       <g mask="url(#cs-reflect-mask)" opacity=".85">
         <g transform={`translate(0 ${BASE_Y * 2 + 2}) scale(1 -1)`} opacity=".55">
           {castle}
         </g>
       </g>
-      {/* moonlit ripples */}
       {streaks.map((s, i) => (
         <rect key={i} className={`cs-sh ${s.cls}`} x={s.x} y={s.y} width={s.w} height=".5" fill="#c7d4ff" style={{ animationDuration: `${s.dur}s`, animationDelay: `${s.delay}s` }} />
       ))}

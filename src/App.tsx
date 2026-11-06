@@ -25,22 +25,12 @@ import './styles/transitions.css';
 
 type Phase = 'intro' | 'id' | 'ceremony' | 'notfound';
 type Found = Extract<LookupResult, { status: 'found' }>;
-/**
- * How the old screen leaves and the new one arrives.
- *   pan      title scene to scroll scene: the camera follows the owl (transitions.css)
- *   dusk     scroll to ceremony: the scroll has already closed and gone dark (closeScroll.ts), the
- *            ceremony fades up out of that dark
- *   quick    to and from the not-found screen: a short, light crossfade
- *   fade     everything else: the old screen fades out underneath while the new one fades in
- *   reduced  prefers-reduced-motion: a plain short crossfade, nothing moves
- */
 type ExitKind = 'pan' | 'dusk' | 'quick' | 'fade' | 'reduced';
 interface Leaving {
   phase: Phase;
   kind: ExitKind;
 }
 
-/** How long each kind lasts (also drives --fade-ms for the CSS). */
 const KIND_MS: Record<ExitKind, number> = {
   pan: PAN_MS,
   dusk: DUSK_IN_MS,
@@ -49,7 +39,6 @@ const KIND_MS: Record<ExitKind, number> = {
   reduced: REDUCED_FADE_MS,
 };
 
-/** Replaying dips to black and back, like the scroll closing, instead of swapping the stage in one frame. */
 type Dip = 'off' | 'in' | 'out';
 
 const WRONG_TRIES_BEFORE_PAUSE = 3;
@@ -80,15 +69,12 @@ function Main() {
 
   useWandTrail();
 
-  // Warm the (tiny) encrypted list while the intro plays. Failure is retried on submit.
   useEffect(() => {
-    // The list first (it is what the lookup needs), then the crests, so neither slows the other.
     void loadData()
       .catch(() => undefined)
       .finally(() => void preloadCrests());
   }, []);
 
-  // A soft tick on every button. The title's own button and the wax seal have their own sounds.
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
       const el = e.target instanceof Element ? e.target.closest('button') : null;
@@ -98,10 +84,6 @@ function Main() {
     return () => document.removeEventListener('click', onClick);
   }, []);
 
-  /**
-   * Change screen. The old screen stays mounted (inert, taken out of the layout) while it animates
-   * out, and the new one animates in over it, instead of the old one vanishing in the same frame.
-   */
   const go = useCallback((next: Phase) => {
     const from = phaseRef.current;
     if (from === next) return;
@@ -117,7 +99,6 @@ function Main() {
             ? 'quick'
             : 'fade';
     if (kind === 'pan') {
-      // The title turns to embers as the camera sweeps away from it.
       [0.25, 0.5, 0.75].forEach((x, i) => {
         window.setTimeout(() => particles.burst(window.innerWidth * x, window.innerHeight * 0.45, '#f3d98c', 14), i * 130);
       });
@@ -173,7 +154,6 @@ function Main() {
     go('notfound');
   }, [go]);
 
-  /** Replaying skips nothing: the full ceremony runs again on the already-found result. */
   const handleReplay = useCallback(() => {
     const found = lastFound.current;
     if (!found || dipTimer.current !== undefined) return;
@@ -185,7 +165,6 @@ function Main() {
       restart();
       return;
     }
-    // Dip to black, restart the ceremony while nothing shows, come back up (its entrance plays again).
     setDip('in');
     dipTimer.current = window.setTimeout(() => {
       restart();
@@ -208,7 +187,6 @@ function Main() {
         return (
           <IntroScreen
             onEnter={() => {
-              // First tap: fetch the (tiny) audio chunk in the background. Sound stays off until toggled.
               preloadAudio();
               sfx('swoosh');
               go('id');

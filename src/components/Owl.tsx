@@ -3,14 +3,6 @@ import rollBody from '../assets/scroll/roll-body.webp';
 import rollCapL from '../assets/scroll/roll-cap-l.webp';
 import rollCapR from '../assets/scroll/roll-cap-r.webp';
 
-/**
- * A snowy owl in side view, carrying the rolled scroll in its talons.
- * Original artwork, pure SVG (~2 KB). Wings flap with a CSS transform loop (see .owl-wing).
- * `carriedRef` points at the scroll in the talons so the intro can hide it the moment the
- * real, animated scroll is dropped.
- * The scroll uses the same textures as the dropped scroll and the open scroll's rolls
- * (src/assets/scroll/), so it is visibly the same object all the way through.
- */
 export function Owl({ carriedRef }: { carriedRef: RefObject<SVGGElement | null> }) {
   const wing =
     'M100 72 C92 50 78 28 52 10 L56 24 L40 18 L50 32 L36 30 L50 42 L38 44 L56 54 C70 64 88 74 112 80 Z';
@@ -29,12 +21,10 @@ export function Owl({ carriedRef }: { carriedRef: RefObject<SVGGElement | null> 
 
       <ellipse cx="100" cy="76" rx="98" ry="60" fill="url(#owl-glow)" />
 
-      {/* far wing */}
       <g className="owl-wing owl-wing-far">
         <path d={wing} fill="#bdb199" stroke="#a69a82" strokeWidth="0.8" strokeLinejoin="round" />
       </g>
 
-      {/* tail */}
       <path
         d="M54 78 L8 74 Q3 78 9 81 L2 89 Q8 93 14 90 L10 100 Q18 102 24 96 L58 92 Z"
         fill="#e4d9c1"
@@ -43,7 +33,6 @@ export function Owl({ carriedRef }: { carriedRef: RefObject<SVGGElement | null> 
         strokeLinejoin="round"
       />
 
-      {/* body */}
       <ellipse cx="94" cy="84" rx="46" ry="23" transform="rotate(-6 94 84)" fill="url(#owl-body)" />
       <g fill="#9b8d76" opacity="0.5">
         <ellipse cx="86" cy="90" rx="3" ry="1.4" />
@@ -54,7 +43,6 @@ export function Owl({ carriedRef }: { carriedRef: RefObject<SVGGElement | null> 
         <ellipse cx="106" cy="82" rx="2.6" ry="1.2" />
       </g>
 
-      {/* head */}
       <circle cx="136" cy="66" r="21" fill="#fdf8ec" />
       <path d="M121 50 L125 37 L133 48 Z" fill="#efe6d1" />
       <path d="M139 47 L148 36 L151 50 Z" fill="#efe6d1" />
@@ -65,13 +53,11 @@ export function Owl({ carriedRef }: { carriedRef: RefObject<SVGGElement | null> 
       <circle cx="148.2" cy="62.6" r="1" fill="#fff" />
       <path d="M154 69 L164 74 L154 78 Q152 73 154 69 Z" fill="#d9a53a" />
 
-      {/* near wing */}
       <g className="owl-wing owl-wing-near">
         <path d={wing} fill="#f4eedf" stroke="#b3a78f" strokeWidth="0.9" strokeLinejoin="round" />
         <path d="M96 70 C90 56 80 42 64 30" fill="none" stroke="#cfc3ab" strokeWidth="1.2" strokeLinecap="round" />
       </g>
 
-      {/* talons + the scroll they hold */}
       <g ref={carriedRef}>
         <path d="M86 104 L84 111 M98 104 L100 111" stroke="#c9a35a" strokeWidth="3" strokeLinecap="round" />
         {/* Same proportions as .roll in index.css, scaled to the 12-unit-high scroll: body, then the

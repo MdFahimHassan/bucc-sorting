@@ -1,7 +1,3 @@
-/**
- * Footprints that walk across the bottom of the map: pairs fade in and out in sequence.
- * Opacity-only animation; static and faint under prefers-reduced-motion (see CSS).
- */
 const COUNT = 10;
 
 export function Footprints() {

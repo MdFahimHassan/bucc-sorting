@@ -1,8 +1,4 @@
-/**
- * The BUCC club logo as flat vector paths (from bucc-logo.svg), original colours dropped so the
- * wax seal can press it in as a single-colour relief. viewBox is 297 x 297; the artwork occupies
- * x 51.7-244.3, y 26-270.3.
- */
+/** viewBox is 297 x 297; the artwork occupies x 51.7-244.3, y 26-270.3. */
 export const LOGO_BOX = { x: 51.7, y: 26, w: 192.6, h: 244.3 } as const;
 
 export const LOGO_PATHS: readonly { d: string; evenodd?: true }[] = [

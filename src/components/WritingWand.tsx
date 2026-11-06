@@ -1,11 +1,6 @@
 import { forwardRef } from 'react';
 
-/**
- * The wand used to write the title. Original artwork, pure SVG (~1 KB).
- * The tip sits at the element's origin, so GSAP can position the tip directly.
- * To use your own wand image instead: replace the <svg> with an <img> whose tip pixel
- * is offset to (0,0) using negative margins.
- */
+/** The tip sits at the element's origin so GSAP can position it directly. */
 export const WritingWand = forwardRef<HTMLDivElement>(function WritingWand(_, ref) {
   return (
     <div ref={ref} className="writing-wand" aria-hidden="true">

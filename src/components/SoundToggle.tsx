@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { isSoundOn, preloadAudio, toggleSound } from '../lib/sound';
 
-/** Off by default. Fixed top-right, 44px target, text state exposed via aria-pressed. */
 export function SoundToggle() {
   const [on, setOn] = useState(isSoundOn);
   // Fetch the audio code (a few KB, no sound files) now, so the tap itself never waits for it.
